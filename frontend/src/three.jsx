@@ -30,6 +30,50 @@ const hash = (i) => {
 const pick = (arr, n) => arr[Math.floor(hash(n) * arr.length)]
 const CAM = { x: 3.2, y: 1.6, z: 4.3 }   // mirrors the HeroScene camera
 
+// ---------------------------------------------------------- scene themes
+// `light` is the original pastel-day scene verbatim; `dark` restyles the same
+// world for the NexStudio-style landing (near-black ground, mint accent).
+const THEMES = {
+  light: {
+    fog: '#F6F1EA', fogNear: 6, fogFar: 22,
+    ground: '#EFE9E0',
+    ballast: '#D9CFC0', sleeper: '#9C8A78',
+    rail: '#8B8795', railMetal: 0.5, glint: '#FDFDFD',
+    ambient: 0.75,
+    key: '#FFF6E8', keyI: 1.3,
+    rim: '#A79CF0', rimI: 0.35,
+    hemiSky: '#FFF6E8', hemiGround: '#CBB8A8', hemiI: 0.5,
+    sweep: '#8FE8D0', sweepI: 6,
+    sparkA: '#A79CF0', sparkAI: 0.55, sparkB: '#7FD8BE', sparkBI: 0.5,
+    cloudA: 0.85, cloudB: 0.7,
+    walls: ['#F2E8DA', '#F7F0E6', '#EFE3F4', '#FDF3E3'],
+    roofs: ['#E8A0A6', '#B9A8E8', '#8FD0C0', '#F0B98A'],
+    door: '#B89B7E', trunk: '#C9A984',
+    window: '#7FA8C9', windowEmissive: null, windowEmissiveI: 0,
+    leaves: ['#A8D8B9', '#8FC9A8', '#B7E0C0', '#9AD0A8'],
+    bushLeaves: ['#A8D8B9', '#8FC9A8', '#C4E3C8'],
+  },
+  dark: {
+    fog: '#0E0D10', fogNear: 7, fogFar: 24,
+    ground: '#141217',
+    ballast: '#1C1922', sleeper: '#26222E',
+    rail: '#4A4556', railMetal: 0.6, glint: '#F4F1EA',
+    ambient: 0.35,
+    key: '#EDE8FF', keyI: 0.9,
+    rim: '#7FD8BE', rimI: 0.5,
+    hemiSky: '#26223A', hemiGround: '#0C0B0F', hemiI: 0.4,
+    sweep: '#7FD8BE', sweepI: 8,
+    sparkA: '#7FD8BE', sparkAI: 0.5, sparkB: '#F4F1EA', sparkBI: 0.3,
+    cloudA: 0.35, cloudB: 0.3,
+    walls: ['#232028', '#1D1B23', '#26222E', '#201E26'],
+    roofs: ['#3A3444', '#2E2A3B', '#353046', '#2C2836'],
+    door: '#3A3444', trunk: '#4A4456',
+    window: '#7FD8BE', windowEmissive: '#7FD8BE', windowEmissiveI: 0.5,
+    leaves: ['#20332B', '#1B2E27', '#243A30'],
+    bushLeaves: ['#1B2A24', '#17241F'],
+  },
+}
+
 // ------------------------------------------------------------ rover model
 // Small inspection rover centred BETWEEN the rails; wheels sit exactly on
 // the rail heads. Faces −Z (down-track), camera mast looks ahead.
@@ -109,7 +153,7 @@ function ParkedRover() {
 // The rover's searchlight pans continuously side to side, sweeping its pool
 // of light across the near rails (between the rover and the viewer) —
 // "to and fro" along the track, facing the screen.
-function SweepLight() {
+function SweepLight({ t }) {
   const grp = useRef()
   const target = useMemo(() => new THREE.Object3D(), [])
   useFrame((state) => {
@@ -119,16 +163,16 @@ function SweepLight() {
   return (
     <group ref={grp} position={[-0.13, 0.52, -0.18]}>
       <primitive object={target} position={[0, -0.58, 2.8]} />
-      <spotLight target={target} angle={0.4} penumbra={0.6} intensity={6} distance={14} decay={1.2} color="#8FE8D0" />
+      <spotLight target={target} angle={0.4} penumbra={0.6} intensity={t.sweepI} distance={14} decay={1.2} color={t.sweep} />
       {/* small glow at the lamp itself */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <coneGeometry args={[0.11, 0.34, 20, 1, true]} />
-        <meshBasicMaterial color="#8FE8D0" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color={t.sweep} transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
       {/* hot pool of light riding the beam on the ballast */}
       <mesh position={[0, -0.55, 2.7]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[1.4, 26]} />
-        <meshBasicMaterial color="#8FE8D0" transparent opacity={0.22} depthWrite={false} />
+        <meshBasicMaterial color={t.sweep} transparent opacity={0.22} depthWrite={false} />
       </mesh>
     </group>
   )
@@ -137,7 +181,7 @@ function SweepLight() {
 // ------------------------------------------------------------- moving track
 // The rover stays parked; the belt streams toward the viewer (wrapping
 // modulo the sleeper spacing) so the scene reads as constant forward travel.
-function MovingTrack() {
+function MovingTrack({ t }) {
   const sleepers = useRef([])
   const glints = useRef([])
   const offset = useRef(0)
@@ -178,25 +222,25 @@ function MovingTrack() {
       {/* ballast bed — same infinite stretch as the rails */}
       <mesh position={[0, -0.075, -32]}>
         <boxGeometry args={[2.05, 0.07, 77]} />
-        <meshStandardMaterial color="#D9CFC0" roughness={1} />
+        <meshStandardMaterial color={t.ballast} roughness={1} />
       </mesh>
       {/* rails — continuous, fading into the fog */}
       <mesh geometry={railGeo} position={[-RAIL_GAUGE, RAIL_Y, 0]}>
-        <meshStandardMaterial color="#8B8795" roughness={0.35} metalness={0.5} />
+        <meshStandardMaterial color={t.rail} roughness={0.35} metalness={t.railMetal} />
       </mesh>
       <mesh geometry={railGeo} position={[RAIL_GAUGE, RAIL_Y, 0]}>
-        <meshStandardMaterial color="#8B8795" roughness={0.35} metalness={0.5} />
+        <meshStandardMaterial color={t.rail} roughness={0.35} metalness={t.railMetal} />
       </mesh>
       {/* sleepers streaming toward the viewer, seamless modulo wrap */}
       {conf.bases.map((b, i) => (
         <mesh key={i} ref={(el) => (sleepers.current[i] = el)} geometry={sleeperGeo} position={[0, -0.05, 0]}>
-          <meshStandardMaterial color="#9C8A78" roughness={0.85} />
+          <meshStandardMaterial color={t.sleeper} roughness={0.85} />
         </mesh>
       ))}
       {/* bright glints on the rail heads — motion cue */}
       {conf.glints.map((g, i) => (
         <mesh key={`g${i}`} ref={(el) => (glints.current[i] = el)} geometry={glintGeo} position={[0, RAIL_TOP + 0.007, 0]}>
-          <meshStandardMaterial color="#FDFDFD" roughness={0.2} />
+          <meshStandardMaterial color={t.glint} roughness={0.2} />
         </mesh>
       ))}
     </group>
@@ -206,9 +250,9 @@ function MovingTrack() {
 // ------------------------------------------------- houses & greenery
 // Pastel houses, low-poly trees and bushes scattered along both sides of the
 // line, denser near the camera and swallowed by the fog in the distance.
-function House({ x, z, i, s, face }) {
-  const wall = pick(['#F2E8DA', '#F7F0E6', '#EFE3F4', '#FDF3E3'], i + 200)
-  const roof = pick(['#E8A0A6', '#B9A8E8', '#8FD0C0', '#F0B98A'], i + 300)
+function House({ x, z, i, s, face, t }) {
+  const wall = pick(t.walls, i + 200)
+  const roof = pick(t.roofs, i + 300)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <RoundedBox args={[0.55, 0.4, 0.48]} radius={0.03} smoothness={2} position={[0, 0.2, 0]}>
@@ -221,23 +265,23 @@ function House({ x, z, i, s, face }) {
       </mesh>
       <mesh position={[0, 0.11, 0.245]}>
         <boxGeometry args={[0.13, 0.2, 0.02]} />
-        <meshStandardMaterial color="#B89B7E" roughness={0.9} />
+        <meshStandardMaterial color={t.door} roughness={0.9} />
       </mesh>
       <mesh position={[-0.15, 0.27, 0.245]}>
         <boxGeometry args={[0.12, 0.1, 0.02]} />
-        <meshStandardMaterial color="#7FA8C9" roughness={0.6} />
+        <meshStandardMaterial color={t.window} emissive={t.windowEmissive || undefined} emissiveIntensity={t.windowEmissiveI} roughness={0.6} />
       </mesh>
     </group>
   )
 }
 
-function Tree({ x, z, i, s, face }) {
-  const leaf = pick(['#A8D8B9', '#8FC9A8', '#B7E0C0', '#9AD0A8'], i + 400)
+function Tree({ x, z, i, s, face, t }) {
+  const leaf = pick(t.leaves, i + 400)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <mesh position={[0, 0.16, 0]}>
         <cylinderGeometry args={[0.045, 0.07, 0.32, 7]} />
-        <meshStandardMaterial color="#C9A984" roughness={0.9} />
+        <meshStandardMaterial color={t.trunk} roughness={0.9} />
       </mesh>
       <mesh position={[0, 0.44, 0]}>
         <icosahedronGeometry args={[0.24, 0]} />
@@ -255,8 +299,8 @@ function Tree({ x, z, i, s, face }) {
   )
 }
 
-function Bush({ x, z, i, s, face }) {
-  const leaf = pick(['#A8D8B9', '#8FC9A8', '#C4E3C8'], i + 500)
+function Bush({ x, z, i, s, face, t }) {
+  const leaf = pick(t.bushLeaves, i + 500)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <mesh position={[0, 0.13, 0]}>
@@ -275,7 +319,7 @@ function Bush({ x, z, i, s, face }) {
   )
 }
 
-function Scenery() {
+function Scenery({ t }) {
   const items = useMemo(() => {
     const out = []
     for (let i = 0; i < 30; i++) {
@@ -292,44 +336,64 @@ function Scenery() {
   return (
     <group>
       {items.map((it) =>
-        it.kind === 'house' ? <House key={it.i} {...it} /> : it.kind === 'tree' ? <Tree key={it.i} {...it} /> : <Bush key={it.i} {...it} />
+        it.kind === 'house' ? <House key={it.i} {...it} t={t} /> : it.kind === 'tree' ? <Tree key={it.i} {...it} t={t} /> : <Bush key={it.i} {...it} t={t} />
       )}
     </group>
   )
 }
 
-function Ground() {
+function Ground({ t }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.06, -26]}>
       <circleGeometry args={[62, 48]} />
-      <meshStandardMaterial color="#EFE9E0" roughness={1} />
+      <meshStandardMaterial color={t.ground} roughness={1} />
     </mesh>
   )
 }
 
+// ------------------------------------------------------- scroll rig
+// Framer-motion scroll progress (0 → 1 while the hero scrolls off) moves the
+// WORLD, never the camera — OrbitControls keeps owning the camera safely.
+function ScrollRig({ progress, children }) {
+  const grp = useRef()
+  useFrame((_, dt) => {
+    const g = grp.current
+    if (!g) return
+    const p = progress ? (typeof progress.get === 'function' ? progress.get() : progress) : 0
+    const k = 1 - Math.pow(0.001, dt)   // frame-rate-independent damping
+    g.position.z += (-p * 2.2 - g.position.z) * k
+    g.rotation.x += (p * 0.06 - g.rotation.x) * k
+    g.position.y += (-p * 0.4 - g.position.y) * k
+  })
+  return <group ref={grp}>{children}</group>
+}
+
 // ------------------------------------------------------------ hero scene
-export function HeroScene({ mini = false }) {
+export function HeroScene({ mini = false, variant = 'light', scrollProgress = null, enableZoom = true }) {
+  const t = THEMES[variant] || THEMES.light
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [3.2, 1.6, 4.3], fov: 42 }} gl={{ antialias: true, alpha: true }}>
       <Suspense fallback={null}>
-        <ambientLight intensity={0.75} />
-        <directionalLight position={[6, 8, 4]} intensity={1.3} color="#FFF6E8" />
-        <directionalLight position={[-5, 3, -3]} intensity={0.35} color="#A79CF0" />
-        <fog attach="fog" args={['#F6F1EA', 6, 22]} />
-        <Ground />
-        <MovingTrack />
-        <Scenery />
-        {/* the rover holds its spot; only the world streams past it */}
-        <ParkedRover />
-        <SweepLight />
-        <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.4}>
-          <Cloud position={[-3.4, 2.6, -3]} scale={1.4} opacity={0.85} speed={0.25} />
-          <Cloud position={[3.6, 3.1, -4.5]} scale={1.7} opacity={0.7} speed={0.22} />
-        </Float>
-        <Sparkles count={46} scale={[10, 4, 8]} size={2.4} speed={0.32} color="#A79CF0" opacity={0.55} />
-        <Sparkles count={26} scale={[8, 3, 6]} size={3.2} speed={0.26} color="#7FD8BE" opacity={0.5} />
-        {!mini && <OrbitControls enablePan={false} minDistance={2.4} maxDistance={9} minPolarAngle={1.05} maxPolarAngle={1.45} target={[0, 0.28, -0.3]} enableDamping />}
-        <hemisphereLight args={['#FFF6E8', '#CBB8A8', 0.5]} />
+        <ambientLight intensity={t.ambient} />
+        <directionalLight position={[6, 8, 4]} intensity={t.keyI} color={t.key} />
+        <directionalLight position={[-5, 3, -3]} intensity={t.rimI} color={t.rim} />
+        <fog attach="fog" args={[t.fog, t.fogNear, t.fogFar]} />
+        <ScrollRig progress={scrollProgress}>
+          <Ground t={t} />
+          <MovingTrack t={t} />
+          <Scenery t={t} />
+          {/* the rover holds its spot; only the world streams past it */}
+          <ParkedRover />
+          <SweepLight t={t} />
+          <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.4}>
+            <Cloud position={[-3.4, 2.6, -3]} scale={1.4} opacity={t.cloudA} speed={0.25} />
+            <Cloud position={[3.6, 3.1, -4.5]} scale={1.7} opacity={t.cloudB} speed={0.22} />
+          </Float>
+          <Sparkles count={46} scale={[10, 4, 8]} size={2.4} speed={0.32} color={t.sparkA} opacity={t.sparkAI} />
+          <Sparkles count={26} scale={[8, 3, 6]} size={3.2} speed={0.26} color={t.sparkB} opacity={t.sparkBI} />
+        </ScrollRig>
+        {!mini && <OrbitControls enablePan={false} minDistance={2.4} maxDistance={9} minPolarAngle={1.05} maxPolarAngle={1.45} target={[0, 0.28, -0.3]} enableDamping enableZoom={enableZoom} />}
+        <hemisphereLight args={[t.hemiSky, t.hemiGround, t.hemiI]} />
       </Suspense>
     </Canvas>
   )
