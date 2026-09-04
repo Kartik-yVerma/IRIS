@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { Search, Filter } from 'lucide-react'
 import { GlassCard, ClassBadge, SeverityBadge, StatusBadge, DefectDrawer } from '../components.jsx'
-import { C, SEV_ORDER, CLASS_LABEL, usePoll, get, patch, fmt, titleCase } from '../lib.js'
+import { SEV_ORDER, CLASS_LABEL, usePoll, get, patch, fmt, titleCase } from '../lib.js'
 
 const STATUSES = ['open', 'acknowledged', 'verified', 'assigned', 'in_repair', 'resolved', 'dismissed']
 
@@ -55,12 +55,12 @@ export default function Defects() {
 
       <GlassCard hover={false} className="section-gap" style={{ padding: 16 }}>
         <div className="row wrap" style={{ gap: 10 }}>
-          <div className="row" style={{ flex: 1, minWidth: 220, background: 'rgba(46,42,59,.05)', borderRadius: 999, padding: '4px 14px' }}>
-            <Search size={15} style={{ color: C.muted }} />
+          <div className="row" style={{ flex: 1, minWidth: 220, background: 'var(--line)', borderRadius: 999, padding: '4px 14px' }}>
+            <Search size={15} style={{ color: 'var(--muted)' }} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ID, zone, segment…"
               style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', padding: '7px 0', fontSize: 13.5 }} />
           </div>
-          <Filter size={15} style={{ color: C.muted }} />
+          <Filter size={15} style={{ color: 'var(--muted)' }} />
           <select className="chip" value={filters.cls} onChange={(e) => setFilters({ ...filters, cls: e.target.value })} style={{ outline: 'none' }}>
             <option value="">All classes</option>
             {Object.entries(CLASS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

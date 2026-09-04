@@ -88,14 +88,14 @@ export default function VisionLab() {
           <GlassCard title={`Detections — ${dets.length}`} icon={<ScanEye size={14} />} hover={false}>
             {dets.length === 0 && <div className="muted" style={{ fontSize: 13 }}>No detections above confidence floor on this frame.</div>}
             {dets.map((d, i) => (
-              <div key={i} className="row" style={{ padding: '8px 0', borderBottom: i < dets.length - 1 ? `1px solid ${C.line}` : 'none' }}>
+              <div key={i} className="row" style={{ padding: '8px 0', borderBottom: i < dets.length - 1 ? '1px solid var(--line)' : 'none' }}>
                 <img src={`/api/evidence/${d.class}`} alt="real-world reference"
                   style={{ width: 58, height: 42, objectFit: 'cover', borderRadius: 10, flex: 'none' }} />
                 <ClassBadge cls={d.class} />
                 <span className="mono muted" style={{ marginLeft: 'auto', fontSize: 12.5 }}>
                   bbox [{d.bbox.map((b) => Math.round(b)).join(', ')}]
                 </span>
-                <div style={{ width: 84, height: 7, borderRadius: 99, background: 'rgba(46,42,59,.08)' }}>
+                <div style={{ width: 84, height: 7, borderRadius: 99, background: 'var(--line)' }}>
                   <div style={{ width: `${d.confidence * 100}%`, height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${C.mint}, ${C.lavender})` }} />
                 </div>
                 <b className="mono" style={{ fontSize: 13 }}>{fmt.pct(d.confidence)}</b>
@@ -128,7 +128,7 @@ export default function VisionLab() {
               onDrop={(e) => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]) }}
               onClick={() => fileRef.current?.click()}
               className="glass"
-              style={{ border: `2px dashed ${drag ? C.lavender : C.line}`, borderRadius: 18, padding: 26, textAlign: 'center', cursor: 'pointer', background: drag ? 'rgba(167,156,240,.08)' : undefined }}
+              style={{ border: `2px dashed ${drag ? C.lavender : 'var(--line)'}`, borderRadius: 18, padding: 26, textAlign: 'center', cursor: 'pointer', background: drag ? 'rgba(167,156,240,.08)' : undefined }}
             >
               <ImageIcon size={26} style={{ color: C.lavender, marginBottom: 8 }} />
               <div style={{ fontSize: 13.5 }}><b>{uploadBusy ? 'Analyzing…' : 'Drop an image or click to upload'}</b></div>

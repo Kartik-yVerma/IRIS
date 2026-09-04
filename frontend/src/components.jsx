@@ -144,52 +144,27 @@ export function Navbar() {
 }
 
 // -------------------------------------------------------- morph transition
-const SHAPES = {
-  '/': 'M0,0 C80,60 40,140 160,160 C260,176 300,80 420,90 C540,100 560,220 720,180 C880,140 860,40 1000,40 C1140,40 1180,140 1300,120 C1420,100 1440,20 1440,0 Z',
-  default: 'M720,900 C500,860 300,700 240,480 C180,260 340,80 620,60 C900,40 1180,140 1260,380 C1340,620 1200,820 920,880 Z',
-}
+// lightweight brand flash on route change — opacity-only (cheap, smooth;
+// the old full-screen SVG path morph was the source of nav jank)
 export function MorphTransition() {
   const { pathname } = useLocation()
-  const [shape, setShape] = useState(SHAPES[pathname] || SHAPES.default)
   const [covering, setCovering] = useState(false)
   useEffect(() => {
     setCovering(true)
-    const t1 = setTimeout(() => {
-      setShape(SHAPES[pathname] || SHAPES.default)
-      const t2 = setTimeout(() => setCovering(false), 380)
-      return () => clearTimeout(t2)
-    }, 140)
-    return () => clearTimeout(t1)
+    const t = setTimeout(() => setCovering(false), 420)
+    return () => clearTimeout(t)
   }, [pathname])
   return (
     <AnimatePresence>
       {covering && (
         <motion.div
           className="morph-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.28 }}
           key={pathname}
-        >
-          <svg width="100vw" height="100vh" viewBox="0 0 1440 900" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0 }}>
-            <defs>
-              <linearGradient id="morphg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={C.mint} />
-                <stop offset="55%" stopColor={C.lavender} />
-                <stop offset="100%" stopColor={C.peach} />
-              </linearGradient>
-            </defs>
-            <motion.path
-              d={shape}
-              fill="url(#morphg)"
-              initial={false}
-              animate={{ scale: [1, 3.4, 3.4, 0.1], rotate: [0, 8, 8, 0], opacity: [0.9, 1, 1, 0] }}
-              transition={{ duration: 0.72, times: [0, 0.22, 0.78, 1], ease: 'easeInOut' }}
-              style={{ originX: '720px', originY: '450px' }}
-            />
-          </svg>
-        </motion.div>
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.4, 0] }}
+          transition={{ duration: 0.4, times: [0, 0.35, 1], ease: 'easeInOut' }}
+          style={{ background: `radial-gradient(120% 130% at 50% 38%, ${C.lavender}, ${C.mint} 62%, ${C.peach})` }}
+        />
       )}
     </AnimatePresence>
   )

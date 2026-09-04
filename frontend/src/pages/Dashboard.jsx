@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Route, ClipboardList, Siren, ShieldCheck, Bot, ScanEye, ChevronRight, AlertTriangle } from 'lucide-react'
 import { GlassCard, KpiCard, ClassBadge, SeverityBadge, MiniMap, DefectDrawer } from '../components.jsx'
@@ -9,11 +9,6 @@ export default function Dashboard() {
   const [liveEvents, setLiveEvents] = useState([])
   const [alerts, setAlerts] = useState([])
   const [selected, setSelected] = useState(null)
-  useEffect(() => {
-    // dark page → dark body (no light bleed at overscroll edges)
-    document.body.classList.add('nex-body-dark')
-    return () => document.body.classList.remove('nex-body-dark')
-  }, [])
   useEvents((msg) => {
     if (msg.type === 'event_created') setLiveEvents((s) => [msg.payload, ...s].slice(0, 8))
     if (msg.type === 'alert') setAlerts((s) => [{ ...msg.payload, kind: 'alert', title: `${CLASS_LABEL[msg.payload.class] || titleCase(msg.payload.class)} — ${msg.payload.severity}`, message: `Chainage ${fmt.km(msg.payload.chainage_m)} · tap to open` }, ...s].slice(0, 4))

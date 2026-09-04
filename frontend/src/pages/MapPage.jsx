@@ -117,7 +117,7 @@ export default function MapPage() {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <MapContainer center={[18.755, 73.34]} zoom={11} style={{ height: '100%', width: '100%' }} attributionControl={true}>
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
         {layers.zones && zonePts.map((z) => (
           <Polyline key={z.name} positions={z.pts} pathOptions={{ color: C.lavender, weight: 7, opacity: 0.16 }} />
         ))}
@@ -125,7 +125,7 @@ export default function MapPage() {
         {layers.patrol && patrolPts.length > 1 && <AnimatedPatrol positions={patrolPts} />}
         {trail.length > 1 && <Polyline positions={trail} pathOptions={{ color: '#4FBFA4', weight: 5, opacity: 0.75 }} />}
         {layers.stations && track.stations.map((s) => (
-          <CircleMarker key={s.name} center={[s.lat, s.lng]} radius={5} pathOptions={{ color: C.ink, weight: 2, fillColor: '#fff', fillOpacity: 1 }}>
+          <CircleMarker key={s.name} center={[s.lat, s.lng]} radius={5} pathOptions={{ color: '#FFFFFF', weight: 2, fillColor: '#141217', fillOpacity: 1 }}>
             <Tooltip direction="top" offset={[0, -6]}><b>{s.name}</b></Tooltip>
           </CircleMarker>
         ))}
@@ -171,12 +171,12 @@ export default function MapPage() {
             ))}
             <div>
               <div className="spread" style={{ fontSize: 12.5 }}><span className="muted">Patrol progress</span><span className="mono">{rover.mission_progress_pct}%</span></div>
-              <div style={{ height: 8, borderRadius: 99, background: 'rgba(46,42,59,.08)', marginTop: 6 }}>
+              <div style={{ height: 8, borderRadius: 99, background: 'var(--line)', marginTop: 6 }}>
                 <div style={{ width: `${rover.mission_progress_pct}%`, height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${C.mint}, ${C.lavender})` }} />
               </div>
             </div>
 
-            <div className="row" style={{ gap: 7, borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
+            <div className="row" style={{ gap: 7, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
               <button className="btn primary sm" disabled={busy || rover.status === 'mission'} onClick={() => send('start')}><Play size={13} /> Start</button>
               <button className="btn glass sm" disabled={busy || rover.status !== 'mission'} onClick={() => send('pause')}><Pause size={13} /> Pause</button>
               <button className="btn glass sm" disabled={busy || rover.status !== 'paused'} onClick={() => send('resume')}><RotateCcw size={13} /> Resume</button>
@@ -184,7 +184,7 @@ export default function MapPage() {
             </div>
 
             {vision?.detections?.length > 0 && (
-              <div className="glass" style={{ background: 'rgba(255,255,255,.65)', padding: 12, borderRadius: 16 }}>
+              <div className="glass" style={{ background: 'var(--surface)', padding: 12, borderRadius: 16 }}>
                 <div className="row" style={{ fontSize: 12.5 }}><ScanEye size={14} style={{ color: C.lavender }} /><b>Latest vision detection</b></div>
                 {vision.detections.map((d, i) => (
                   <div key={i} className="row" style={{ fontSize: 12, marginTop: 6 }}>

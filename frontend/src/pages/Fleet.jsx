@@ -10,18 +10,18 @@ import { OrbitControls } from '@react-three/drei'
 function MiniRover() {
   return (
     <Canvas dpr={[1, 1.5]} camera={{ position: [2.6, 1.9, 3.2], fov: 42 }} style={{ height: 170 }}>
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[4, 6, 3]} intensity={1.2} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[4, 6, 3]} intensity={1.1} color="#EDE8FF" />
       <group>
-        {/* ground + rails so the rover reads as riding a track */}
+        {/* ground + rails so the rover reads as riding a track (dark theme) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.06, 0]}>
           <circleGeometry args={[6, 40]} />
-          <meshStandardMaterial color="#EFE9E0" roughness={1} />
+          <meshStandardMaterial color="#141217" roughness={1} />
         </mesh>
         {[-0.55, 0.55].map((x) => (
           <mesh key={x} position={[x, 0.03, 0]}>
             <cylinderGeometry args={[0.045, 0.045, 2.6, 10]} />
-            <meshStandardMaterial color="#8B8795" roughness={0.35} metalness={0.5} />
+            <meshStandardMaterial color="#4A4556" roughness={0.35} metalness={0.6} />
           </mesh>
         ))}
         <RoverModel />
@@ -35,7 +35,7 @@ const STATUS_STYLE = {
   mission: { bg: 'rgba(127,216,190,.22)', color: '#2E9C7C' },
   paused: { bg: 'rgba(255,217,125,.28)', color: '#A07A10' },
   charging: { bg: 'rgba(142,202,230,.25)', color: '#33749A' },
-  standby: { bg: 'rgba(46,42,59,.06)', color: C.muted },
+  standby: { bg: 'var(--line)', color: 'var(--muted)' },
   maintenance: { bg: 'rgba(167,156,240,.18)', color: '#7A66D8' },
   safe_stop: { bg: 'rgba(224,96,140,.18)', color: '#C04B74' },
 }
@@ -96,7 +96,7 @@ export default function Fleet() {
                   [Gauge, 'Speed', `${r.speed_mps} m/s`, C.sky],
                   [Radio, 'Link', `${r.signal_dbm} dBm`, r.signal_dbm < -85 ? C.rose : C.butter],
                   [Thermometer, 'Temperature', `${r.temp_c}°C`, C.peach]].map(([Icon, l, v, c]) => (
-                  <div key={l} className="glass" style={{ padding: 10, borderRadius: 14, background: 'rgba(255,255,255,.55)' }}>
+                  <div key={l} className="glass" style={{ padding: 10, borderRadius: 14, background: 'var(--surface)' }}>
                     <div className="row muted" style={{ gap: 6, fontSize: 11.5 }}><Icon size={13} style={{ color: c }} />{l}</div>
                     <b className="mono" style={{ fontSize: 14, marginTop: 3 }}>{v}</b>
                   </div>
@@ -114,7 +114,7 @@ export default function Fleet() {
               {r.mission_progress_pct > 0 && (
                 <div style={{ marginTop: 14 }}>
                   <div className="spread" style={{ fontSize: 12 }}><span className="muted">Mission progress</span><b className="mono">{r.mission_progress_pct}%</b></div>
-                  <div style={{ height: 8, borderRadius: 99, background: 'rgba(46,42,59,.08)', marginTop: 6 }}>
+                  <div style={{ height: 8, borderRadius: 99, background: 'var(--line)', marginTop: 6 }}>
                     <div style={{ width: `${r.mission_progress_pct}%`, height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${C.mint}, ${C.lavender})` }} />
                   </div>
                 </div>

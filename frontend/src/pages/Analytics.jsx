@@ -3,7 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { GlassCard, ClassBadge } from '../components.jsx'
 import { C, CATEGORICAL, CLASSES, CLASS_COLOR, CLASS_LABEL, SEV, SEV_ORDER, usePoll, get, fmt, titleCase } from '../lib.js'
 
-const AXIS = { fontSize: 11, fill: C.muted, fontFamily: 'Inter, sans-serif' }
+const AXIS = { fontSize: 11, fill: 'var(--muted)', fontFamily: 'Inter, sans-serif' }
 function Tip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
@@ -83,7 +83,7 @@ export default function Analytics() {
                     </linearGradient>
                   ))}
                 </defs>
-                <CartesianGrid stroke={C.line} vertical={false} />
+                <CartesianGrid stroke="var(--line)" vertical={false} />
                 <XAxis dataKey="date" tick={AXIS} tickFormatter={(d) => d.slice(5)} interval="preserveStartEnd" />
                 <YAxis tick={AXIS} allowDecimals={false} />
                 <Tooltip content={<Tip />} />
@@ -101,7 +101,7 @@ export default function Analytics() {
             <ResponsiveContainer width="58%" height={280}>
               <PieChart>
                 <Pie data={sevData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={92} paddingAngle={3} strokeWidth={2}>
-                  {sevData.map((d, i) => <Cell key={i} fill={d.color} stroke="#fff" />)}
+                  {sevData.map((d, i) => <Cell key={i} fill={d.color} stroke="#141217" />)}
                 </Pie>
                 <Tooltip content={<Tip />} />
               </PieChart>
@@ -121,10 +121,10 @@ export default function Analytics() {
         <GlassCard title="Total events by class" hover={false}>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={classData} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid stroke={C.line} vertical={false} />
+              <CartesianGrid stroke="var(--line)" vertical={false} />
               <XAxis dataKey="name" tick={{ ...AXIS, fontSize: 10.5 }} interval={0} angle={-14} textAnchor="end" height={52} />
               <YAxis tick={AXIS} allowDecimals={false} />
-              <Tooltip content={<Tip />} cursor={{ fill: 'rgba(46,42,59,.04)' }} />
+              <Tooltip content={<Tip />} cursor={{ fill: 'rgba(255,255,255,.06)' }} />
               <Bar dataKey="count" name="events" radius={[6, 6, 0, 0]} maxBarSize={52}>
                 {classData.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Bar>
@@ -147,7 +147,7 @@ export default function Analytics() {
                   <b>{z.zone}</b>
                   <span className="muted mono" style={{ fontSize: 12 }}>{z.events_total} events · {z.events_open} open</span>
                 </div>
-                <div style={{ height: 10, borderRadius: 99, background: 'rgba(46,42,59,.07)', marginTop: 8 }}>
+                <div style={{ height: 10, borderRadius: 99, background: 'var(--line)', marginTop: 8 }}>
                   <div style={{ width: `${z.health}%`, height: '100%', borderRadius: 99, background: z.health > 70 ? `linear-gradient(90deg, ${C.mint}, ${C.sky})` : z.health > 45 ? `linear-gradient(90deg, ${C.butter}, ${C.peach})` : C.rose, transition: 'width .6s' }} />
                 </div>
                 <div className="row muted" style={{ fontSize: 11.5, marginTop: 5, justifyContent: 'space-between' }}>

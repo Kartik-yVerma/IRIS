@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar, MorphTransition, AlertStack } from './components.jsx'
@@ -12,19 +12,17 @@ import Defects from './pages/Defects.jsx'
 import Analytics from './pages/Analytics.jsx'
 import Fleet from './pages/Fleet.jsx'
 
+// light crossfade — no exit wait, no transforms: snappy and cheap
 function Page({ children }) {
   const location = useLocation()
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 14, scale: 0.995 }}
-        animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: [0.2, 0.8, 0.25, 1] } }}
-        exit={{ opacity: 0, y: -10, transition: { duration: 0.18 } }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.25, ease: 'easeOut' } }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
@@ -46,12 +44,16 @@ function Console() {
       setAlerts((s) => [{ id: Date.now() + '', kind: 'health', title: 'Rover health flag', message: msg.payload.message }, ...s].slice(0, 4))
     }
   })
-  const dark = location.pathname === '/dashboard'
+  // the whole console runs the dark NexStudio theme now
+  useEffect(() => {
+    document.body.classList.add('nex-body-dark')
+    return () => document.body.classList.remove('nex-body-dark')
+  }, [])
   return (
-    <div className={dark ? 'console-dark' : undefined} style={dark ? { minHeight: '100vh' } : undefined}>
+    <div className="console-dark" style={{ minHeight: '100vh' }}>
       {!location.pathname.startsWith('/map') && <Navbar />}
       <MorphTransition />
-      <Cursor tone={dark ? 'dark' : 'light'} />
+      <Cursor tone="dark" />
       <AlertStack alerts={alerts} onOpen={(a) => { setAlerts((s) => s.filter((x) => x.id !== a.id)); if (a.kind === 'alert') nav(`/defects?event=${a.id}`); else nav('/dashboard') }} />
       <Page key={location.pathname}>
         <Routes location={location}>
