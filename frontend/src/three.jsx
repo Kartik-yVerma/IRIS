@@ -1,5 +1,5 @@
-import React, { Suspense, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float, Sparkles, OrbitControls, RoundedBox, Cloud } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -72,6 +72,129 @@ const THEMES = {
     leaves: ['#20332B', '#1B2E27', '#243A30'],
     bushLeaves: ['#1B2A24', '#17241F'],
   },
+}
+
+// -------------------------------------------------- day / night atmosphere
+// A smooth 5-minute day/night cycle drives the dark hero: the sun rises and
+// the fog disperses (vegetation brightens), then the moon returns with the
+// fog as night falls. Only atmosphere state is touched — the track, sleeper
+// stream and rover keep their exact positions and motion.
+const DAY_CYCLE_SECS = 300
+const V_SUN = new THREE.Vector3(6, 8, 4)
+const V_MOON = new THREE.Vector3(-6, 7, -14)
+const C_FOG_NIGHT = new THREE.Color('#0E0D10')
+const C_FOG_DAY = new THREE.Color('#1C1826')
+const C_MOONLIGHT = new THREE.Color('#7C86C4')
+const C_SUNLIGHT = new THREE.Color('#FFF2E0')
+const C_WARM = new THREE.Color('#FF9E6D')   // dawn / dusk warmth
+const C_HEMI_NIGHT = new THREE.Color('#141130')
+const C_HEMI_DAY = new THREE.Color('#2A2440')
+
+// environment materials (foliage + houses) register here so the cycle can
+// raise their emissive with the daylight — "as the sun rises, the
+// vegetation and environment become visible"
+const ENV_MATS = new Set()
+function useEnvMat(color) {
+  const ref = useRef()
+  useEffect(() => {
+    const m = ref.current
+    if (!m) return
+    m.emissive = new THREE.Color(color)
+    m.emissiveIntensity = 0
+    ENV_MATS.add(m)
+    return () => { ENV_MATS.delete(m); m.emissiveIntensity = 0 }
+  }, [color])
+  return ref
+}
+
+function DayNightCycle({ t, cycleSecs = DAY_CYCLE_SECS, children }) {
+  const scene = useThree((s) => s.scene)
+  const ambient = useRef()
+  const key = useRef()
+  const rim = useRef()
+  const hemi = useRef()
+  const moonGroup = useRef()
+  const moonMat = useRef()
+  const haloMat = useRef()
+  const stars = useRef()
+  const starsBase = useRef([])
+
+  useEffect(() => {
+    // capture the sparkle base opacities once (drei fades them per particle)
+    const pts = stars.current
+    const attr = pts?.geometry?.attributes?.opacity
+    if (attr) starsBase.current = Array.from(attr.array)
+  }, [])
+
+  useEffect(() => {
+    scene.fog = new THREE.Fog(t.fog, t.fogNear, t.fogFar)
+    // dev-only debug handle (drives the automated day/night verification)
+    if (import.meta.env.DEV) window.__irisScene = scene
+    return () => { scene.fog = null }
+  }, [scene, t])
+
+  useFrame((state) => {
+    const cycle = cycleSecs || DAY_CYCLE_SECS
+    // dev test override: pin the cycle phase deterministically (headless
+    // chromium throttles rAF too hard for real-time day/night tests)
+    const elapsed = window.__irisTime != null ? window.__irisTime : state.clock.elapsedTime
+    const p = ((elapsed / cycle) + 0.18) % 1                   // start pre-dawn
+    const sunH = Math.sin(p * Math.PI * 2 - Math.PI / 2)       // −1 night … +1 noon
+    const day = THREE.MathUtils.clamp(sunH, 0, 1)
+    const warm = Math.pow(1 - Math.min(1, Math.abs(sunH) * 1.5), 1.6)  // dawn/dusk hump
+    const l = THREE.MathUtils.lerp
+    if (ambient.current) ambient.current.intensity = l(0.16, 0.85, day)
+    if (key.current) {
+      key.current.intensity = l(0.2, 1.5, day)
+      key.current.color.copy(C_MOONLIGHT).lerp(C_SUNLIGHT, day).lerp(C_WARM, warm * 0.7)
+      key.current.position.lerpVectors(V_MOON, V_SUN, day)   // moon ↔ sun direction
+    }
+    if (rim.current) rim.current.intensity = l(0.5, 0.22, day)
+    if (hemi.current) {
+      hemi.current.intensity = l(0.45, 0.22, day)
+      hemi.current.color.copy(C_HEMI_NIGHT).lerp(C_HEMI_DAY, day)
+    }
+    if (scene.fog) {
+      scene.fog.far = l(15, 36, day)   // fog disperses with the sun
+      scene.fog.near = l(5, 9, day)
+      scene.fog.color.copy(C_FOG_NIGHT).lerp(C_FOG_DAY, day)
+    }
+    const moonOp = THREE.MathUtils.clamp(-sunH * 1.15, 0, 1)
+    if (moonGroup.current) {
+      moonGroup.current.visible = moonOp > 0.01
+      moonGroup.current.children.forEach((m) => m.lookAt(state.camera.position))
+      if (moonMat.current) moonMat.current.opacity = moonOp
+      if (haloMat.current) haloMat.current.opacity = moonOp * 0.35
+    }
+    const starAttr = stars.current?.geometry?.attributes?.opacity
+    if (starAttr && starsBase.current.length) {
+      const f = l(0.9, 0.08, day)
+      for (let i = 0; i < starAttr.array.length; i++) starAttr.array[i] = starsBase.current[i] * f
+      starAttr.needsUpdate = true
+    }
+    ENV_MATS.forEach((m) => { m.emissiveIntensity = 0.04 + Math.pow(day, 0.75) * 0.5 })
+  })
+
+  return (
+    <>
+      <ambientLight ref={ambient} intensity={0.16} />
+      <directionalLight ref={key} position={V_MOON.toArray()} intensity={0.2} color="#7C86C4" />
+      <directionalLight ref={rim} position={[-5, 3, -3]} intensity={0.5} color={t.rim} />
+      <hemisphereLight ref={hemi} args={['#141130', '#0C0B0F', 0.45]} />
+      <group ref={moonGroup} position={V_MOON.toArray()}>
+        <mesh>
+          <circleGeometry args={[0.45, 32]} />
+          <meshBasicMaterial ref={moonMat} color="#F4F1EA" transparent opacity={0} depthWrite={false} />
+        </mesh>
+        <mesh>
+          <circleGeometry args={[1.5, 32]} />
+          <meshBasicMaterial ref={haloMat} color="#B9C8FF" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+        </mesh>
+      </group>
+      <Sparkles ref={stars} count={70} scale={[14, 8, 12]} size={1.8} speed={0.12} color="#CDE4FF" opacity={0.9} />
+      {children}
+    </>
+  )
 }
 
 // ------------------------------------------------------------ rover model
@@ -253,15 +376,17 @@ function MovingTrack({ t }) {
 function House({ x, z, i, s, face, t }) {
   const wall = pick(t.walls, i + 200)
   const roof = pick(t.roofs, i + 300)
+  const wallMat = useEnvMat(wall)
+  const roofMat = useEnvMat(roof)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <RoundedBox args={[0.55, 0.4, 0.48]} radius={0.03} smoothness={2} position={[0, 0.2, 0]}>
-        <meshStandardMaterial color={wall} roughness={0.9} />
+        <meshStandardMaterial ref={wallMat} color={wall} roughness={0.9} />
       </RoundedBox>
       {/* gabled roof: box tipped 45° makes a diamond peak */}
       <mesh position={[0, 0.45, 0]} rotation={[0, 0, Math.PI / 4]}>
         <boxGeometry args={[0.6, 0.6, 0.5]} />
-        <meshStandardMaterial color={roof} roughness={0.85} />
+        <meshStandardMaterial ref={roofMat} color={roof} roughness={0.85} />
       </mesh>
       <mesh position={[0, 0.11, 0.245]}>
         <boxGeometry args={[0.13, 0.2, 0.02]} />
@@ -277,15 +402,17 @@ function House({ x, z, i, s, face, t }) {
 
 function Tree({ x, z, i, s, face, t }) {
   const leaf = pick(t.leaves, i + 400)
+  const trunkMat = useEnvMat(t.trunk)
+  const leafMat = useEnvMat(leaf)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <mesh position={[0, 0.16, 0]}>
         <cylinderGeometry args={[0.045, 0.07, 0.32, 7]} />
-        <meshStandardMaterial color={t.trunk} roughness={0.9} />
+        <meshStandardMaterial ref={trunkMat} color={t.trunk} roughness={0.9} />
       </mesh>
       <mesh position={[0, 0.44, 0]}>
         <icosahedronGeometry args={[0.24, 0]} />
-        <meshStandardMaterial color={leaf} roughness={0.95} flatShading />
+        <meshStandardMaterial ref={leafMat} color={leaf} roughness={0.95} flatShading />
       </mesh>
       <mesh position={[0.1, 0.34, 0.05]}>
         <icosahedronGeometry args={[0.15, 0]} />
@@ -301,11 +428,12 @@ function Tree({ x, z, i, s, face, t }) {
 
 function Bush({ x, z, i, s, face, t }) {
   const leaf = pick(t.bushLeaves, i + 500)
+  const leafMat = useEnvMat(leaf)
   return (
     <group position={[x, 0, z]} scale={s} rotation={[0, face, 0]}>
       <mesh position={[0, 0.13, 0]}>
         <icosahedronGeometry args={[0.17, 0]} />
-        <meshStandardMaterial color={leaf} roughness={0.95} flatShading />
+        <meshStandardMaterial ref={leafMat} color={leaf} roughness={0.95} flatShading />
       </mesh>
       <mesh position={[0.13, 0.1, 0.04]}>
         <icosahedronGeometry args={[0.12, 0]} />
@@ -369,31 +497,42 @@ function ScrollRig({ progress, children }) {
 }
 
 // ------------------------------------------------------------ hero scene
-export function HeroScene({ mini = false, variant = 'light', scrollProgress = null, enableZoom = true }) {
+export function HeroScene({ mini = false, variant = 'light', scrollProgress = null, enableZoom = true, cycleSecs = DAY_CYCLE_SECS }) {
   const t = THEMES[variant] || THEMES.light
+  const dark = variant === 'dark'
+  const world = (
+    <ScrollRig progress={scrollProgress}>
+      <Ground t={t} />
+      <MovingTrack t={t} />
+      <Scenery t={t} />
+      {/* the rover holds its spot; only the world streams past it */}
+      <ParkedRover />
+      <SweepLight t={t} />
+      <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.4}>
+        <Cloud position={[-3.4, 2.6, -3]} scale={1.4} opacity={t.cloudA} speed={0.25} />
+        <Cloud position={[3.6, 3.1, -4.5]} scale={1.7} opacity={t.cloudB} speed={0.22} />
+      </Float>
+      <Sparkles count={46} scale={[10, 4, 8]} size={2.4} speed={0.32} color={t.sparkA} opacity={t.sparkAI} />
+      <Sparkles count={26} scale={[8, 3, 6]} size={3.2} speed={0.26} color={t.sparkB} opacity={t.sparkBI} />
+    </ScrollRig>
+  )
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [3.2, 1.6, 4.3], fov: 42 }} gl={{ antialias: true, alpha: true }}>
       <Suspense fallback={null}>
-        <ambientLight intensity={t.ambient} />
-        <directionalLight position={[6, 8, 4]} intensity={t.keyI} color={t.key} />
-        <directionalLight position={[-5, 3, -3]} intensity={t.rimI} color={t.rim} />
-        <fog attach="fog" args={[t.fog, t.fogNear, t.fogFar]} />
-        <ScrollRig progress={scrollProgress}>
-          <Ground t={t} />
-          <MovingTrack t={t} />
-          <Scenery t={t} />
-          {/* the rover holds its spot; only the world streams past it */}
-          <ParkedRover />
-          <SweepLight t={t} />
-          <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.4}>
-            <Cloud position={[-3.4, 2.6, -3]} scale={1.4} opacity={t.cloudA} speed={0.25} />
-            <Cloud position={[3.6, 3.1, -4.5]} scale={1.7} opacity={t.cloudB} speed={0.22} />
-          </Float>
-          <Sparkles count={46} scale={[10, 4, 8]} size={2.4} speed={0.32} color={t.sparkA} opacity={t.sparkAI} />
-          <Sparkles count={26} scale={[8, 3, 6]} size={3.2} speed={0.26} color={t.sparkB} opacity={t.sparkBI} />
-        </ScrollRig>
+        {dark ? (
+          // night sky, moon and fog give way to the sun — the world itself never moves
+          <DayNightCycle t={t} cycleSecs={cycleSecs}>{world}</DayNightCycle>
+        ) : (
+          <>
+            <ambientLight intensity={t.ambient} />
+            <directionalLight position={[6, 8, 4]} intensity={t.keyI} color={t.key} />
+            <directionalLight position={[-5, 3, -3]} intensity={t.rimI} color={t.rim} />
+            <fog attach="fog" args={[t.fog, t.fogNear, t.fogFar]} />
+            {world}
+            <hemisphereLight args={[t.hemiSky, t.hemiGround, t.hemiI]} />
+          </>
+        )}
         {!mini && <OrbitControls enablePan={false} minDistance={2.4} maxDistance={9} minPolarAngle={1.05} maxPolarAngle={1.45} target={[0, 0.28, -0.3]} enableDamping enableZoom={enableZoom} />}
-        <hemisphereLight args={[t.hemiSky, t.hemiGround, t.hemiI]} />
       </Suspense>
     </Canvas>
   )

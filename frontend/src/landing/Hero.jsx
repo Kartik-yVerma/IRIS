@@ -4,6 +4,11 @@ import { HeroScene } from '../three.jsx'
 import { Counter } from './reveal.jsx'
 
 const EASE = [0.2, 0.8, 0.25, 1]
+// ?cycle=<seconds> speeds up the day/night cycle (dev / demo override)
+const cycleSecs = () => {
+  const v = parseFloat(new URLSearchParams(location.search).get('cycle'))
+  return Number.isFinite(v) && v > 0 ? v : 300
+}
 
 export default function Hero({ ready, scrollYProgress, stats }) {
   const canvasOpacity = useTransform(scrollYProgress, [0.15, 0.85], [1, 0])
@@ -18,7 +23,7 @@ export default function Hero({ ready, scrollYProgress, stats }) {
   return (
     <section id="home" className="nex-hero">
       <motion.div className="nex-hero-canvas" style={{ opacity: canvasOpacity, scale: canvasScale }}>
-        <HeroScene variant="dark" scrollProgress={scrollYProgress} enableZoom={false} />
+        <HeroScene variant="dark" scrollProgress={scrollYProgress} enableZoom={false} cycleSecs={cycleSecs()} />
       </motion.div>
       <div className="nex-hero-scrim" />
       <div className="nex-hero-type">
