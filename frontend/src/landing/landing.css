@@ -3,10 +3,10 @@
 
 .nex {
   --nex-bg: #0E0D10;
-  --nex-ink: #F4F1EA;
-  --nex-muted: #8B8795;
-  --nex-faint: #5A5666;
-  --nex-line: rgba(244, 241, 234, .12);
+  --nex-ink: #FFFFFF;
+  --nex-muted: #A6A2B2;
+  --nex-faint: #6E6A7A;
+  --nex-line: rgba(255, 255, 255, .14);
   --nex-accent: #7FD8BE;
   background: var(--nex-bg);
   color: var(--nex-ink);
@@ -24,6 +24,7 @@
   letter-spacing: -.04em;
   font-weight: 700;
   text-transform: uppercase;
+  text-shadow: 0 2px 48px rgba(14, 13, 16, .6);
 }
 .nex .nex-mono {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
@@ -58,7 +59,7 @@
   position: absolute;
   inset: 0;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(244, 241, 234, .3);
+  -webkit-text-stroke: 1px rgba(255, 255, 255, .55);
   user-select: none;
   pointer-events: none;
 }
@@ -288,7 +289,7 @@
   text-transform: uppercase;
   white-space: nowrap;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(244, 241, 234, .25);
+  -webkit-text-stroke: 1.2px rgba(255, 255, 255, .5);
   padding-right: 60px;
 }
 @keyframes nex-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -357,7 +358,22 @@
 .nex-preloader .bar { width: min(260px, 40vw); height: 1px; background: var(--nex-line); position: relative; overflow: hidden; }
 .nex-preloader .bar i { position: absolute; inset: 0; background: var(--nex-accent); transform-origin: left; }
 
-/* ---------- custom cursor ---------- */
+/* ---------- custom cursor + lamp ---------- */
+/* a soft pool of light follows the pointer — the cursor acts as a lamp,
+   illuminating the dark page (or casting an iridescent sheen on light ones) */
+.nex-lamp {
+  position: fixed;
+  top: 0; left: 0;
+  width: 1100px; height: 1100px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2500;
+  will-change: transform;
+  background: radial-gradient(circle, rgba(244, 241, 234, .11) 0%, rgba(127, 216, 190, .05) 35%, transparent 70%);
+}
+.nex-lamp.light {
+  background: radial-gradient(circle, rgba(167, 156, 240, .16) 0%, rgba(127, 216, 190, .09) 42%, transparent 72%);
+}
 .nex-cursor-dot, .nex-cursor-ring {
   position: fixed;
   top: 0; left: 0;
@@ -383,6 +399,10 @@
   border-color: var(--nex-accent);
 }
 .nex-cursor-ring.press { width: 26px; height: 26px; }
+/* light-tone variants for the pastel console pages */
+.nex-cursor-dot.light { background: #2E2A3B; }
+.nex-cursor-ring.light { border-color: rgba(46, 42, 59, .4); }
+.nex-cursor-ring.light.hover { background: rgba(46, 42, 59, .08); border-color: #2E2A3B; }
 
 /* ---------- unscoped helpers (active only while landing is mounted) ---------- */
 html.nex-smooth { scroll-behavior: smooth; }

@@ -3,13 +3,16 @@ import { useReducedMotion } from 'framer-motion'
 
 const HOVER_SEL = '[data-hover], a, button, [role="button"], .nex-frame'
 
-// custom dot + ring cursor; only mounts on fine pointers, and the native
-// cursor is only hidden once a real pointermove proves the custom one alive
-export default function Cursor() {
+// custom cursor that illuminates the page like a lamp: a dot + ring plus a
+// large pool of light that follows the pointer. `tone="light"` restyles it
+// for the pastel console pages. Mounts only on fine pointers; the native
+// cursor is only hidden once a real pointermove proves the custom one alive.
+export default function Cursor({ tone = 'dark' }) {
   const reduced = useReducedMotion()
   const [enabled, setEnabled] = useState(false)
   const dotRef = useRef(null)
   const ringRef = useRef(null)
+  const lampRef = useRef(null)
 
   useEffect(() => {
     if (reduced) return
@@ -21,11 +24,12 @@ export default function Cursor() {
     if (!enabled) return
     const dot = dotRef.current
     const ring = ringRef.current
+    const lamp = lampRef.current
     let mx = 0, my = 0, dx = 0, dy = 0, rx = 0, ry = 0, raf
     let nativeHidden = false
     const onMove = (e) => {
       mx = e.clientX; my = e.clientY
-      dot.style.opacity = ring.style.opacity = '1'
+      dot.style.opacity = ring.style.opacity = lamp.style.opacity = '1'
       if (!nativeHidden) {
         document.documentElement.classList.add('nex-cursor-active')
         nativeHidden = true
@@ -36,13 +40,14 @@ export default function Cursor() {
       rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12
       dot.style.transform = `translate3d(${dx}px,${dy}px,0) translate(-50%,-50%)`
       ring.style.transform = `translate3d(${rx}px,${ry}px,0) translate(-50%,-50%)`
+      lamp.style.transform = `translate3d(${rx - 550}px,${ry - 550}px,0)`   // lamp centre = pointer
       raf = requestAnimationFrame(loop)
     }
     const over = (e) => { if (e.target.closest && e.target.closest(HOVER_SEL)) ring.classList.add('hover') }
     const out = (e) => { if (e.target.closest && e.target.closest(HOVER_SEL)) ring.classList.remove('hover') }
     const down = () => ring.classList.add('press')
     const up = () => ring.classList.remove('press')
-    const leave = () => { dot.style.opacity = ring.style.opacity = '0' }
+    const leave = () => { dot.style.opacity = ring.style.opacity = lamp.style.opacity = '0' }
     window.addEventListener('pointermove', onMove, { passive: true })
     document.addEventListener('pointerover', over)
     document.addEventListener('pointerout', out)
@@ -63,10 +68,12 @@ export default function Cursor() {
   }, [enabled])
 
   if (!enabled) return null
+  const cls = tone === 'light' ? ' light' : ''
   return (
     <>
-      <div ref={dotRef} className="nex-cursor-dot" style={{ opacity: 0 }} />
-      <div ref={ringRef} className="nex-cursor-ring" style={{ opacity: 0 }} />
+      <div ref={lampRef} className={`nex-lamp${cls}`} style={{ opacity: 0 }} />
+      <div ref={dotRef} className={`nex-cursor-dot${cls}`} style={{ opacity: 0 }} />
+      <div ref={ringRef} className={`nex-cursor-ring${cls}`} style={{ opacity: 0 }} />
     </>
   )
 }

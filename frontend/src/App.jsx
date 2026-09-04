@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar, MorphTransition, AlertStack } from './components.jsx'
 import { CLASS_LABEL, useEvents, fmt, titleCase } from './lib.js'
 import Landing from './landing/Landing.jsx'
+import Cursor from './landing/Cursor.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MapPage from './pages/MapPage.jsx'
 import VisionLab from './pages/VisionLab.jsx'
@@ -49,6 +50,7 @@ function Console() {
     <>
       {!location.pathname.startsWith('/map') && <Navbar />}
       <MorphTransition />
+      <Cursor tone="light" />
       <AlertStack alerts={alerts} onOpen={(a) => { setAlerts((s) => s.filter((x) => x.id !== a.id)); if (a.kind === 'alert') nav(`/defects?event=${a.id}`); else nav('/dashboard') }} />
       <Page key={location.pathname}>
         <Routes location={location}>
