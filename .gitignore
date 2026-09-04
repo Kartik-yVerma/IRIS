@@ -1,0 +1,9 @@
+node_modules/
+frontend/dist/
+backend/.venv/
+__pycache__/
+*.pyc
+.DS_Store
+backend/data/
+backend/frames/
+backend/evidence/

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python -)",
+      "Bash(curl -s \"http://localhost:8000/api/vision/latest\")",
+      "Bash(curl -s -o /dev/null -w \"annotated frame HTTP %{http_code}, %{size_download} bytes\\\\n\" \"http://localhost:8000/api/frames/annotated/f0030\")",
+      "Bash(curl -s \"http://localhost:8000/api/analytics/summary\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('captures:', d['captures'], '| events_created via mission check'\\)\")",
+      "Bash(curl -s \"http://localhost:8000/api/missions/current\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('captures:', d['captures'], 'events_created:', d['events_created'], 'laps:', d['laps']\\)\")",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:8000/)",
+      "Bash(curl -s \"http://localhost:8000/api/health\")",
+      "Bash(curl -s \"http://localhost:8000/api/events?limit=3\")",
+      "Bash(python3 -c \"import json,sys; [print\\(e['id'], e['class'], e['status'], 'risk', e['risk_score'], e['ts'][:19]\\) for e in json.load\\(sys.stdin\\)['events']]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('captures:', d['captures'], 'events:', d['events_created'], 'laps:', d['laps']\\)\")",
+      "Bash(chmod +x \"/Users/kartikeyverma0110/Desktop/PROJECT IRIS/start.sh\")",
+      "Bash(curl -s http://localhost:8000/api/health)",
+      "Bash(xargs kill)",
+      "Bash(nohup .venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000)",
+      "Bash(curl -s http://localhost:8000/api/rovers)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s http://localhost:8000/api/track)",
+      "Bash(node shot.js)",
+      "Bash(node analyze.js)",
+      "Bash(node deep.js)"
+    ]
+  }
+}
