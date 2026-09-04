@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar, MorphTransition, AlertStack } from './components.jsx'
 import { CLASS_LABEL, useEvents, fmt, titleCase } from './lib.js'
-import Home from './pages/Home.jsx'
+import Landing from './landing/Landing.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MapPage from './pages/MapPage.jsx'
 import VisionLab from './pages/VisionLab.jsx'
@@ -27,7 +27,9 @@ function Page({ children }) {
   )
 }
 
-export default function App() {
+// the operational console — old chrome (nav pill, morph, alerts, SSE) lives
+// here so the immersive landing mounts with none of it
+function Console() {
   const location = useLocation()
   const nav = useNavigate()
   const [alerts, setAlerts] = useState([])
@@ -50,16 +52,33 @@ export default function App() {
       <AlertStack alerts={alerts} onOpen={(a) => { setAlerts((s) => s.filter((x) => x.id !== a.id)); if (a.kind === 'alert') nav(`/defects?event=${a.id}`); else nav('/dashboard') }} />
       <Page key={location.pathname}>
         <Routes location={location}>
-          <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/vision" element={<VisionLab />} />
           <Route path="/defects" element={<Defects />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/fleet" element={<Fleet />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Page>
     </>
+  )
+}
+
+export default function App() {
+  const location = useLocation()
+  const isLanding = location.pathname === '/'
+  return (
+    <AnimatePresence mode="wait">
+      {isLanding ? (
+        <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.3 } }}>
+          <Landing />
+        </motion.div>
+      ) : (
+        <motion.div key="console" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.35 } }} exit={{ opacity: 0 }}>
+          <Console />
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

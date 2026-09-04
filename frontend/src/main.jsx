@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
 import './styles.css'
+import './landing/landing.css'
 import App from './App.jsx'
 
 // surface runtime errors visibly instead of a silent blank page + report to backend
