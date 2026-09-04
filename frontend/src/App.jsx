@@ -46,11 +46,12 @@ function Console() {
       setAlerts((s) => [{ id: Date.now() + '', kind: 'health', title: 'Rover health flag', message: msg.payload.message }, ...s].slice(0, 4))
     }
   })
+  const dark = location.pathname === '/dashboard'
   return (
-    <>
+    <div className={dark ? 'console-dark' : undefined} style={dark ? { minHeight: '100vh' } : undefined}>
       {!location.pathname.startsWith('/map') && <Navbar />}
       <MorphTransition />
-      <Cursor tone="light" />
+      <Cursor tone={dark ? 'dark' : 'light'} />
       <AlertStack alerts={alerts} onOpen={(a) => { setAlerts((s) => s.filter((x) => x.id !== a.id)); if (a.kind === 'alert') nav(`/defects?event=${a.id}`); else nav('/dashboard') }} />
       <Page key={location.pathname}>
         <Routes location={location}>
@@ -63,7 +64,7 @@ function Console() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Page>
-    </>
+    </div>
   )
 }
 

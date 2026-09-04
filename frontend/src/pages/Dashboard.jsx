@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Route, ClipboardList, Siren, ShieldCheck, Bot, ScanEye, ChevronRight, AlertTriangle } from 'lucide-react'
 import { GlassCard, KpiCard, ClassBadge, SeverityBadge, MiniMap, DefectDrawer } from '../components.jsx'
@@ -9,6 +9,11 @@ export default function Dashboard() {
   const [liveEvents, setLiveEvents] = useState([])
   const [alerts, setAlerts] = useState([])
   const [selected, setSelected] = useState(null)
+  useEffect(() => {
+    // dark page → dark body (no light bleed at overscroll edges)
+    document.body.classList.add('nex-body-dark')
+    return () => document.body.classList.remove('nex-body-dark')
+  }, [])
   useEvents((msg) => {
     if (msg.type === 'event_created') setLiveEvents((s) => [msg.payload, ...s].slice(0, 8))
     if (msg.type === 'alert') setAlerts((s) => [{ ...msg.payload, kind: 'alert', title: `${CLASS_LABEL[msg.payload.class] || titleCase(msg.payload.class)} — ${msg.payload.severity}`, message: `Chainage ${fmt.km(msg.payload.chainage_m)} · tap to open` }, ...s].slice(0, 4))
@@ -69,8 +74,9 @@ export default function Dashboard() {
             patrolStart={track?.patrol?.start_m ? Math.floor(track.patrol.start_m / 30) : null}
             patrolEnd={track?.patrol?.end_m ? Math.floor(track.patrol.end_m / 30) : null}
             onEvent={(e) => setSelected(e)}
+            dark
           />
-          <div className="row" style={{ marginTop: 10, fontSize: 12.5, color: C.muted }}>
+          <div className="row" style={{ marginTop: 10, fontSize: 12.5, color: 'var(--muted)' }}>
             <span className="row" style={{ gap: 5 }}><span className="status-dot" style={{ background: C.lavender }} /> full route</span>
             <span className="row" style={{ gap: 5 }}><span className="status-dot" style={{ background: C.mint }} /> patrol zone</span>
             <button className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => nav('/map')}>Open Mission Map <ChevronRight size={14} /></button>
@@ -103,7 +109,7 @@ export default function Dashboard() {
                   <span>{z.zone}</span>
                   <span className="mono muted">{z.events_total} evt · {z.events_open} open</span>
                 </div>
-                <div style={{ height: 7, borderRadius: 99, background: 'rgba(46,42,59,.07)', marginTop: 5 }}>
+                <div style={{ height: 7, borderRadius: 99, background: 'var(--line)', marginTop: 5 }}>
                   <div style={{ width: `${z.health}%`, height: '100%', borderRadius: 99, background: z.health > 70 ? `linear-gradient(90deg, ${C.mint}, ${C.sky})` : z.health > 45 ? `linear-gradient(90deg, ${C.butter}, ${C.peach})` : C.rose }} />
                 </div>
               </div>

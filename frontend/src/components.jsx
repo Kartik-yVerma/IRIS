@@ -93,7 +93,7 @@ export function StatusBadge({ status }) {
   const done = status === 'resolved'
   const off = status === 'dismissed'
   return (
-    <span className="badge" style={{ background: done ? 'rgba(127,216,190,.25)' : off ? 'rgba(46,42,59,.08)' : 'rgba(167,156,240,.18)', color: done ? '#2E9C7C' : off ? C.muted : '#7A66D8' }}>
+    <span className="badge" style={{ background: done ? 'rgba(127,216,190,.25)' : off ? 'var(--line)' : 'rgba(167,156,240,.18)', color: done ? '#2E9C7C' : off ? 'var(--muted)' : '#7A66D8' }}>
       {done ? <CheckCircle2 size={13} /> : <Activity size={13} />} {titleCase(status)}
     </span>
   )
@@ -280,7 +280,7 @@ export function DefectDrawer({ event, onClose, onStatus, busy }) {
                     <span className="muted">{label}</span>
                     <span className="mono">{typeof v === 'number' ? v.toFixed(2) : v}</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(46,42,59,.08)', marginTop: 4 }}>
+                  <div style={{ height: 6, borderRadius: 99, background: 'var(--line)', marginTop: 4 }}>
                     <div style={{ width: `${(Number(v) || 0) * 100}%`, height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${C.mint}, ${C.lavender})` }} />
                   </div>
                   <div style={{ fontSize: 11 }} className="muted">{q}</div>
@@ -336,7 +336,7 @@ function EvidenceImg({ cls, fallback }) {
 function MiniStat({ icon, label, value, accent }) {
   return (
     <div className="glass" style={{ padding: 12 }}>
-      <div className="row" style={{ gap: 7, fontSize: 11.5, color: C.muted }}>
+      <div className="row" style={{ gap: 7, fontSize: 11.5, color: 'var(--muted)' }}>
         {icon}{label}
       </div>
       <div className="mono" style={{ fontWeight: 700, fontSize: 14, marginTop: 4, color: accent }}>{value}</div>
@@ -358,12 +358,12 @@ function pinIcon(sev) {
   const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="pin-ico">${sev === 'critical' ? '<path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/>' : '<path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5" fill="white"/></svg>'}`
   return L.divIcon({ className: '', html: `<div class="iris-pin ${sev === 'critical' ? 'pulse' : ''}" style="background:${s.color};width:26px;height:26px">${svg}</div>`, iconSize: [26, 26], iconAnchor: [13, 24] })
 }
-export function MiniMap({ points, rover, events = [], height = 300, flyTo, onEvent, zoom = 11, patrolStart, patrolEnd }) {
+export function MiniMap({ points, rover, events = [], height = 300, flyTo, onEvent, zoom = 11, patrolStart, patrolEnd, dark = false }) {
   if (!points?.length) return <div className="skeleton" style={{ height }} />
   const center = rover ? [rover.lat, rover.lng] : points[Math.floor(points.length / 2)]
   return (
     <MapContainer center={center} zoom={zoom} style={{ height, width: '100%' }} scrollWheelZoom={false} attributionControl={true}>
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
+      <TileLayer url={dark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
       <Polyline positions={points} pathOptions={{ color: C.lavender, weight: 4, opacity: .85 }} />
       {patrolStart != null && patrolEnd != null && (() => {
         const seg = points.filter((p, i) => i >= patrolStart && i <= patrolEnd)
