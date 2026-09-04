@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, useScroll } from 'framer-motion'
+import { AnimatePresence, useReducedMotion, useScroll } from 'framer-motion'
 import Preloader from './Preloader.jsx'
 import Cursor from './Cursor.jsx'
 import Header from './Header.jsx'
@@ -10,9 +10,18 @@ import Contact from './Contact.jsx'
 import Footer from './Footer.jsx'
 import { useLandingStats } from './useLandingStats.js'
 
+const PRE_KEY = 'iris.nex.preloader'
+
 export default function Landing() {
-  const [ready, setReady] = useState(false)
-  const [preVisible, setPreVisible] = useState(true)
+  const reduced = useReducedMotion()
+  // decide BEFORE first render — re-entering the landing from the console
+  // must never flash or replay the preloader curtain
+  const [preVisible, setPreVisible] = useState(() => {
+    if (reduced) return false
+    if (new URLSearchParams(location.search).has('preloader')) return true
+    return !sessionStorage.getItem(PRE_KEY)
+  })
+  const [ready, setReady] = useState(() => !preVisible)
   const heroRef = useRef(null)
   const stats = useLandingStats()
 
@@ -20,14 +29,14 @@ export default function Landing() {
     document.documentElement.classList.add('nex-smooth')
     const prevTitle = document.title
     document.title = 'IRIS — Railway Intelligence'
+    window.scrollTo(0, 0)   // coming back from a scrolled console page lands on the hero
     return () => {
       document.documentElement.classList.remove('nex-smooth')
       document.title = prevTitle
     }
   }, [])
 
-  const onPreDone = useCallback(() => setPreVisible(false), [])
-  useEffect(() => { if (!preVisible) setReady(true) }, [preVisible])
+  const onPreDone = useCallback(() => { setPreVisible(false); setReady(true) }, [])
 
   // hero scroll progress drives the 3D rig + canvas fade
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })

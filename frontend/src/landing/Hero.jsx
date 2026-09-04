@@ -29,7 +29,7 @@ export default function Hero({ ready, scrollYProgress, stats }) {
           transition={{ duration: 0.7, delay: 0.15 }}
         >
           <span className="dot" />
-          <span className="nex-mono">IRIS — Intelligent Railtrack Inspection System</span>
+          <span className="nex-mono">Intelligent Railtrack Inspection System</span>
         </motion.div>
         <motion.h1
           className="nex-display"
@@ -37,19 +37,19 @@ export default function Hero({ ready, scrollYProgress, stats }) {
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.9, ease: EASE, delay: 0.25 }}
         >
-          Railway
-        </motion.h1>
-        <motion.h1
-          className="nex-display line2"
-          initial={{ opacity: 0, y: 70 }}
-          animate={ready ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.9, ease: EASE, delay: 0.4 }}
-        >
           <span className="nex-echo-wrap">
-            Intelligence
-            <span className="nex-echo" aria-hidden="true">Intelligence</span>
+            IRIS
+            <span className="nex-echo" aria-hidden="true">IRIS</span>
           </span>
         </motion.h1>
+        <motion.p
+          className="nex-tagline"
+          initial={{ opacity: 0, y: 24 }}
+          animate={ready ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.45 }}
+        >
+          An innovation for the future in railway inspection system.
+        </motion.p>
       </div>
       {chips.length > 0 && (
         <motion.div

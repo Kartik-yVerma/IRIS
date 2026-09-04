@@ -22,7 +22,7 @@ export default function About() {
       <div className="nex-about-copy">
         <EchoText
           progress={scrollYProgress}
-          text="IRIS is an intelligent rail inspection system. Rover-mounted cameras scan the track, edge vision detects defects in real time, and every finding is fused, localized, prioritized and tracked — turning raw inspection data into engineering decisions, not just detections."
+          text="IRIS is an intelligent rail inspection system. Rover-mounted cameras scan the track, edge vision detects defects in real time, and every finding is fused, localized, prioritized and tracked — turning inspection data into engineering decisions."
         />
       </div>
       <div className="nex-pillars">

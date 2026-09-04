@@ -5,6 +5,7 @@ import { Navbar, MorphTransition, AlertStack } from './components.jsx'
 import { CLASS_LABEL, useEvents, fmt, titleCase } from './lib.js'
 import Landing from './landing/Landing.jsx'
 import Cursor from './landing/Cursor.jsx'
+import AuthPage from './landing/AuthPage.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MapPage from './pages/MapPage.jsx'
 import VisionLab from './pages/VisionLab.jsx'
@@ -73,14 +74,22 @@ function Console() {
 export default function App() {
   const location = useLocation()
   const isLanding = location.pathname === '/'
+  const isAuth = location.pathname === '/login' || location.pathname === '/signup'
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isLanding ? (
-        <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.3 } }}>
+        <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
           <Landing />
         </motion.div>
+      ) : isAuth ? (
+        <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
+          <div className="console-dark" style={{ minHeight: '100vh' }}>
+            <Cursor tone="dark" />
+            <AuthPage />
+          </div>
+        </motion.div>
       ) : (
-        <motion.div key="console" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.35 } }} exit={{ opacity: 0 }}>
+        <motion.div key="console" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
           <Console />
         </motion.div>
       )}

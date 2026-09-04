@@ -1,9 +1,11 @@
 """IRIS — FastAPI backend (PRD §12). REST + SSE + evidence serving + SPA host."""
 import asyncio
 import base64
+import hashlib
 import io
 import json
 import os
+import secrets
 import sqlite3
 import threading
 import time
@@ -12,7 +14,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query, UploadFile, File
+from fastapi import FastAPI, Header, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (FileResponse, JSONResponse, Response,
                                StreamingResponse)
@@ -48,6 +50,11 @@ _db.execute("""CREATE TABLE IF NOT EXISTS events (
 _db.execute("""CREATE TABLE IF NOT EXISTS audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, actor TEXT, action TEXT,
     entity TEXT, detail TEXT)""")
+_db.execute("""CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE,
+    password_hash TEXT, salt TEXT, created_at TEXT)""")
+_db.execute("""CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY, user_id INTEGER, created_at TEXT)""")
 _db.commit()
 
 SIM = Sim(_db)
@@ -125,6 +132,88 @@ def _stage_png(frame_id, stage):
     else:
         raise HTTPException(404, "unknown stage")
     return path
+
+
+# ------------------------------------------------------------------- auth
+def _hash_password(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    h = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 120_000).hex()
+    return h, salt
+
+
+def _issue_token(user_id, name, email):
+    token = secrets.token_hex(32)
+    _db.execute("INSERT INTO sessions (token, user_id, created_at) VALUES (?,?,?)",
+                (token, user_id, datetime.now().isoformat()))
+    _db.commit()
+    return {"token": token, "user": {"name": name, "email": email}}
+
+
+def _session_user(authorization):
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    row = _db.execute(
+        """SELECT u.name, u.email FROM sessions s
+           JOIN users u ON u.id = s.user_id WHERE s.token = ?""",
+        (token,)).fetchone()
+    if not row:
+        raise HTTPException(401, "Not signed in")
+    return {"name": row["name"], "email": row["email"]}
+
+
+class SignupBody(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class LoginBody(BaseModel):
+    email: str
+    password: str
+
+
+@app.post("/api/auth/signup")
+async def auth_signup(body: SignupBody):
+    email = body.email.strip().lower()
+    name = body.name.strip()
+    if not name or len(name) > 60:
+        raise HTTPException(400, "Name is required")
+    if "@" not in email or "." not in email:
+        raise HTTPException(400, "Enter a valid email address")
+    if len(body.password) < 6:
+        raise HTTPException(400, "Password needs at least 6 characters")
+    if _db.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
+        raise HTTPException(409, "An account with this email already exists")
+    h, salt = _hash_password(body.password)
+    cur = _db.execute(
+        "INSERT INTO users (name, email, password_hash, salt, created_at) VALUES (?,?,?,?,?)",
+        (name, email, h, salt, datetime.now().isoformat()))
+    _db.commit()
+    return _issue_token(cur.lastrowid, name, email)
+
+
+@app.post("/api/auth/login")
+async def auth_login(body: LoginBody):
+    email = body.email.strip().lower()
+    row = _db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    if not row:
+        raise HTTPException(401, "No account with this email")
+    h, _ = _hash_password(body.password, row["salt"])
+    if not secrets.compare_digest(h, row["password_hash"]):
+        raise HTTPException(401, "Incorrect password")
+    return _issue_token(row["id"], row["name"], row["email"])
+
+
+@app.get("/api/auth/me")
+async def auth_me(authorization: str = Header(None)):
+    return {"user": _session_user(authorization)}
+
+
+@app.post("/api/auth/logout")
+async def auth_logout(authorization: str = Header(None)):
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    _db.execute("DELETE FROM sessions WHERE token = ?", (token,))
+    _db.commit()
+    return {"ok": True}
 
 
 # ---------------------------------------------------------------- core APIs
