@@ -598,6 +598,44 @@ body.nex-body-dark { background: #0E0D10 !important; background-image: none !imp
 .console-dark .zone-label { background: rgba(14, 13, 16, .55); text-shadow: none; }
 .console-dark .leaflet-container { background: #141217; }
 
+/* ---------- ambient BGM toggle ---------- */
+.bgm-toggle {
+  position: fixed;
+  bottom: 22px; right: 22px;
+  z-index: 3800;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: rgba(14, 13, 16, .8);
+  border: 1px solid rgba(255, 255, 255, .14);
+  color: #A6A2B2;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: color .3s, border-color .3s, box-shadow .3s;
+}
+.bgm-toggle:hover { color: #FFFFFF; }
+.bgm-toggle.on { color: #7FD8BE; border-color: rgba(127, 216, 190, .4); box-shadow: 0 8px 28px rgba(0, 0, 0, .45), 0 0 0 1px rgba(127, 216, 190, .12); }
+.bgm-bars { display: flex; align-items: flex-end; gap: 2.5px; height: 12px; }
+.bgm-bars i {
+  width: 2.5px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: .4;
+}
+.bgm-toggle.on .bgm-bars i { animation: bgm-eq 1.1s ease-in-out infinite; }
+.bgm-toggle.on .bgm-bars i:nth-child(1) { animation-delay: 0s; }
+.bgm-toggle.on .bgm-bars i:nth-child(2) { animation-delay: .18s; }
+.bgm-toggle.on .bgm-bars i:nth-child(3) { animation-delay: .36s; }
+.bgm-toggle.on .bgm-bars i:nth-child(4) { animation-delay: .54s; }
+@keyframes bgm-eq {
+  0%, 100% { height: 4px; opacity: .45; }
+  50% { height: 12px; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .bgm-bars i { animation: none !important; } }
+
 /* ---------- unscoped helpers (active only while landing is mounted) ---------- */
 html.nex-smooth { scroll-behavior: smooth; }
 html.nex-cursor-active, html.nex-cursor-active * { cursor: none !important; }

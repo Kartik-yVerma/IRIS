@@ -6,6 +6,7 @@ import { CLASS_LABEL, useEvents, fmt, titleCase } from './lib.js'
 import Landing from './landing/Landing.jsx'
 import Cursor from './landing/Cursor.jsx'
 import AuthPage from './landing/AuthPage.jsx'
+import AmbientAudio from './landing/AmbientAudio.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MapPage from './pages/MapPage.jsx'
 import VisionLab from './pages/VisionLab.jsx'
@@ -76,7 +77,9 @@ export default function App() {
   const isLanding = location.pathname === '/'
   const isAuth = location.pathname === '/login' || location.pathname === '/signup'
   return (
-    <AnimatePresence>
+    <>
+      <AmbientAudio />
+      <AnimatePresence>
       {isLanding ? (
         <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
           <Landing />
@@ -93,6 +96,7 @@ export default function App() {
           <Console />
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   )
 }
