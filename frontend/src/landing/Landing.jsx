@@ -9,6 +9,7 @@ import Work from './Work.jsx'
 import Contact from './Contact.jsx'
 import Footer from './Footer.jsx'
 import { useLandingStats } from './useLandingStats.js'
+import { useTheme } from '../theme.jsx'
 
 const PRE_KEY = 'iris.nex.preloader'
 
@@ -24,6 +25,7 @@ export default function Landing() {
   const [ready, setReady] = useState(() => !preVisible)
   const heroRef = useRef(null)
   const stats = useLandingStats()
+  const { theme } = useTheme()
 
   useEffect(() => {
     document.documentElement.classList.add('nex-smooth')
@@ -44,11 +46,11 @@ export default function Landing() {
   return (
     <>
       <AnimatePresence>{preVisible && <Preloader key="pre" onDone={onPreDone} />}</AnimatePresence>
-      <Cursor />
+      <Cursor tone={theme === 'dark' ? 'dark' : 'light'} />
       <Header ready={ready} />
       <main className="nex">
         <div ref={heroRef}>
-          <Hero ready={ready} scrollYProgress={scrollYProgress} stats={stats} />
+          <Hero ready={ready} scrollYProgress={scrollYProgress} stats={stats} variant={theme} />
         </div>
         <About />
         <Work stats={stats} />

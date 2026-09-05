@@ -10,6 +10,7 @@ import {
   Pause, OctagonX, ChevronRight, CircleDollarSign, Route, Zap,
 } from 'lucide-react'
 import { C, SEV, SEV_ORDER, CLASS_LABEL, CLASS_COLOR, STATUS_FLOW, fmt, titleCase } from './lib.js'
+import { useTheme } from './theme.jsx'
 
 // ---------------------------------------------------------------- GlassCard
 export function GlassCard({ title, icon, children, className = '', hover = true, style }) {
@@ -118,9 +119,11 @@ const NAV = [
 ]
 export function Navbar() {
   const { pathname } = useLocation()
+  const { toggle } = useTheme()
   return (
     <nav className="nav">
-      <Link to="/" className="brand">
+      {/* the brand doubles as the theme switch (Home lives in the nav pills) */}
+      <button className="brand" onClick={toggle} title="Switch light/dark theme">
         <svg width="26" height="26" viewBox="0 0 64 64">
           <circle cx="32" cy="32" r="26" fill={C.lavender} />
           <circle cx="32" cy="32" r="13" fill={C.mint} />
@@ -128,7 +131,7 @@ export function Navbar() {
           <rect x="8" y="46" width="48" height="5" rx="2.5" fill={C.ink} />
         </svg>
         IRIS
-      </Link>
+      </button>
       {NAV.filter((n) => !n.home).map((n) => {
         const active = pathname.startsWith(n.to)
         return (

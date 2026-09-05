@@ -7,6 +7,7 @@ import Landing from './landing/Landing.jsx'
 import Cursor from './landing/Cursor.jsx'
 import AuthPage from './landing/AuthPage.jsx'
 import AmbientAudio from './landing/AmbientAudio.jsx'
+import { useTheme } from './theme.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MapPage from './pages/MapPage.jsx'
 import VisionLab from './pages/VisionLab.jsx'
@@ -46,16 +47,18 @@ function Console() {
       setAlerts((s) => [{ id: Date.now() + '', kind: 'health', title: 'Rover health flag', message: msg.payload.message }, ...s].slice(0, 4))
     }
   })
-  // the whole console runs the dark NexStudio theme now
+  const { theme } = useTheme()
+  const dark = theme === 'dark'
   useEffect(() => {
-    document.body.classList.add('nex-body-dark')
+    // dark console → dark body (no light bleed at overscroll edges)
+    if (dark) document.body.classList.add('nex-body-dark')
     return () => document.body.classList.remove('nex-body-dark')
-  }, [])
+  }, [dark])
   return (
-    <div className="console-dark" style={{ minHeight: '100vh' }}>
+    <div className={dark ? 'console-dark' : undefined} style={{ minHeight: '100vh' }}>
       {!location.pathname.startsWith('/map') && <Navbar />}
       <MorphTransition />
-      <Cursor tone="dark" />
+      <Cursor tone={dark ? 'dark' : 'light'} />
       <AlertStack alerts={alerts} onOpen={(a) => { setAlerts((s) => s.filter((x) => x.id !== a.id)); if (a.kind === 'alert') nav(`/defects?event=${a.id}`); else nav('/dashboard') }} />
       <Page key={location.pathname}>
         <Routes location={location}>
@@ -74,6 +77,8 @@ function Console() {
 
 export default function App() {
   const location = useLocation()
+  const { theme } = useTheme()
+  const authDark = theme === 'dark'
   const isLanding = location.pathname === '/'
   const isAuth = location.pathname === '/login' || location.pathname === '/signup'
   return (
@@ -86,8 +91,8 @@ export default function App() {
         </motion.div>
       ) : isAuth ? (
         <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
-          <div className="console-dark" style={{ minHeight: '100vh' }}>
-            <Cursor tone="dark" />
+          <div className={authDark ? 'console-dark' : undefined} style={{ minHeight: '100vh' }}>
+            <Cursor tone={authDark ? 'dark' : 'light'} />
             <AuthPage />
           </div>
         </motion.div>

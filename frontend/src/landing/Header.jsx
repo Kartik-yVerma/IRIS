@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTheme } from '../theme.jsx'
 
 function useSession() {
   const [user, setUser] = useState(() => {
@@ -19,6 +20,7 @@ function useSession() {
 export default function Header({ ready }) {
   const [scrolled, setScrolled] = useState(false)
   const user = useSession()
+  const { theme, toggle } = useTheme()
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -31,7 +33,16 @@ export default function Header({ ready }) {
       animate={ready ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.8, ease: [0.2, 0.8, 0.25, 1] }}
     >
-      <a href="#home" className="wordmark" data-hover>IRIS<em>.</em></a>
+      {/* the wordmark doubles as the theme switch */}
+      <a
+        href="#home"
+        className="wordmark"
+        data-hover
+        title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        onClick={(e) => { e.preventDefault(); toggle() }}
+      >
+        IRIS<em>.</em>
+      </a>
       <nav>
         <a href="#work" data-hover>Work</a>
         <a href="#about" data-hover>About</a>

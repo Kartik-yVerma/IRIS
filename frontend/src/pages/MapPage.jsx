@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Bot, Gauge, Battery, Radio, Satellite, Layers, Route, ScanEye, Activity, Pause, Play, RotateCcw, OctagonX, Compass } from 'lucide-react'
 import { SeverityBadge, ClassBadge, DefectDrawer } from '../components.jsx'
 import { C, SEV, CLASS_LABEL, usePoll, get, useEvents, patch, post, fmt, titleCase } from '../lib.js'
+import { useTheme } from '../theme.jsx'
 
 function roverIcon(heading, status) {
   const col = status === 'safe_stop' ? C.rose : status === 'paused' ? C.butter : C.mint
@@ -56,6 +57,7 @@ function AnimatedPatrol({ positions }) {
 
 export default function MapPage() {
   const [params, setParams] = useSearchParams()
+  const { theme } = useTheme()
   const track = usePoll(() => get('/track'), 30000)
   const events = usePoll(() => get('/events?limit=300'), 6000)
   const vision = usePoll(() => get('/vision/latest'), 4000)
@@ -117,7 +119,7 @@ export default function MapPage() {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <MapContainer center={[18.755, 73.34]} zoom={11} style={{ height: '100%', width: '100%' }} attributionControl={true}>
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
+        <TileLayer url={theme === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
         {layers.zones && zonePts.map((z) => (
           <Polyline key={z.name} positions={z.pts} pathOptions={{ color: C.lavender, weight: 7, opacity: 0.16 }} />
         ))}

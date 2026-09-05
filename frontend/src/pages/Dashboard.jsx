@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { Route, ClipboardList, Siren, ShieldCheck, Bot, ScanEye, ChevronRight, AlertTriangle } from 'lucide-react'
 import { GlassCard, KpiCard, ClassBadge, SeverityBadge, MiniMap, DefectDrawer } from '../components.jsx'
 import { C, SEV, CLASS_LABEL, usePoll, get, useEvents, fmt, titleCase } from '../lib.js'
+import { useTheme } from '../theme.jsx'
 
 export default function Dashboard() {
   const nav = useNavigate()
+  const { theme } = useTheme()
   const [liveEvents, setLiveEvents] = useState([])
   const [alerts, setAlerts] = useState([])
   const [selected, setSelected] = useState(null)
@@ -69,7 +71,7 @@ export default function Dashboard() {
             patrolStart={track?.patrol?.start_m ? Math.floor(track.patrol.start_m / 30) : null}
             patrolEnd={track?.patrol?.end_m ? Math.floor(track.patrol.end_m / 30) : null}
             onEvent={(e) => setSelected(e)}
-            dark
+            dark={theme === 'dark'}
           />
           <div className="row" style={{ marginTop: 10, fontSize: 12.5, color: 'var(--muted)' }}>
             <span className="row" style={{ gap: 5 }}><span className="status-dot" style={{ background: C.lavender }} /> full route</span>

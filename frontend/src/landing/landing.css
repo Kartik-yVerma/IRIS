@@ -1,13 +1,34 @@
-/* ============ IRIS landing — NexStudio-style dark experience ============ */
-/* Every rule is .nex-scoped so the light console theme stays untouched.    */
+/* ============ IRIS landing — NexStudio-style experience ============ */
+/* The palette lives at :root and flips with html[data-theme] (the "IRIS."
+   wordmark toggles it). Dark is the default; light is bright & pastel.     */
+
+:root, html[data-theme='dark'] {
+  --nx-bg: #0E0D10;
+  --nx-ink: #FFFFFF;
+  --nx-muted: #B4B0C0;
+  --nx-faint: #7E7A8C;
+  --nx-line: rgba(255, 255, 255, .14);
+  --nx-stroke: rgba(255, 255, 255, .3);
+  --nx-accent: #7FD8BE;
+}
+html[data-theme='light'] {
+  --nx-bg: #FAF9F7;
+  --nx-ink: #2E2A3B;
+  --nx-muted: #6B6780;
+  --nx-faint: #8B8795;
+  --nx-line: rgba(46, 42, 59, .12);
+  --nx-stroke: rgba(46, 42, 59, .22);
+  --nx-accent: #2E9C7C;
+}
+html { background: var(--nx-bg); }
 
 .nex {
-  --nex-bg: #0E0D10;
-  --nex-ink: #FFFFFF;
-  --nex-muted: #B4B0C0;
-  --nex-faint: #7E7A8C;
-  --nex-line: rgba(255, 255, 255, .14);
-  --nex-accent: #7FD8BE;
+  --nex-bg: var(--nx-bg);
+  --nex-ink: var(--nx-ink);
+  --nex-muted: var(--nx-muted);
+  --nex-faint: var(--nx-faint);
+  --nex-line: var(--nx-line);
+  --nex-accent: var(--nx-accent);
   background: var(--nex-bg);
   color: var(--nex-ink);
   min-height: 100vh;
@@ -52,9 +73,9 @@
 .nex-footer,
 .auth-sub,
 .auth-alt {
-  -webkit-text-stroke: .5px rgba(255, 255, 255, .3);
+  -webkit-text-stroke: .5px var(--nx-stroke);
 }
-.auth-card input::placeholder { -webkit-text-stroke: .4px rgba(255, 255, 255, .22); }
+.auth-card input::placeholder { -webkit-text-stroke: .4px var(--nx-stroke); }
 
 /* ---------- sections ---------- */
 .nex-section {
@@ -650,6 +671,61 @@ body.nex-body-dark { background: #0E0D10 !important; background-image: none !imp
 /* ---------- unscoped helpers (active only while landing is mounted) ---------- */
 html.nex-smooth { scroll-behavior: smooth; }
 html.nex-cursor-active, html.nex-cursor-active * { cursor: none !important; }
+
+/* ---------- light theme overrides (html[data-theme='light']) ---------- */
+html[data-theme='light'] .nex .nex-display { text-shadow: 0 2px 24px rgba(255, 255, 255, .9); }
+html[data-theme='light'] .nex .nex-tagline { text-shadow: 0 1px 14px rgba(255, 255, 255, .85); }
+html[data-theme='light'] .nex-header.scrolled { background: rgba(250, 249, 247, .85); }
+html[data-theme='light'] .nex-header nav a { color: #2E2A3B; }
+html[data-theme='light'] .nex-hero-scrim {
+  background: linear-gradient(180deg, rgba(250, 249, 247, .5), transparent 32%, transparent 58%, rgba(250, 249, 247, .3));
+}
+html[data-theme='light'] .nex-chip { background: rgba(46, 42, 59, .05); }
+html[data-theme='light'] .nex-frame { background: rgba(255, 255, 255, .62); }
+html[data-theme='light'] .nex-frame .chrome { background: rgba(255, 255, 255, .4); }
+html[data-theme='light'] .nex-frame .chrome .url { background: rgba(250, 249, 247, .8); }
+html[data-theme='light'] .nex-marquee .strip span { -webkit-text-stroke: 1.2px rgba(46, 42, 59, .5); }
+html[data-theme='light'] .nex-preloader .count { color: var(--nx-ink); }
+
+html[data-theme='light'] .rover-load { background: var(--nx-bg); }
+html[data-theme='light'] .rover-load .rl-track::before { background: repeating-linear-gradient(90deg, rgba(46, 42, 59, .3) 0 18px, transparent 18px 34px); }
+html[data-theme='light'] .rover-load .rl-track .rl-rail { background: rgba(46, 42, 59, .4); }
+html[data-theme='light'] .rover-load .rl-bar { background: rgba(46, 42, 59, .12); }
+
+html[data-theme='light'] .bgm-toggle {
+  background: rgba(255, 255, 255, .85);
+  border-color: rgba(46, 42, 59, .14);
+  color: #6B6780;
+  box-shadow: 0 8px 24px rgba(46, 42, 59, .12);
+}
+html[data-theme='light'] .bgm-toggle:hover { color: #2E2A3B; }
+html[data-theme='light'] .bgm-toggle.on { color: #2E9C7C; border-color: rgba(46, 156, 124, .4); }
+
+html[data-theme='light'] .auth-backdrop {
+  background:
+    radial-gradient(1000px 500px at 85% -10%, rgba(167, 156, 240, .18), transparent 60%),
+    radial-gradient(700px 420px at 10% 110%, rgba(127, 216, 190, .16), transparent 55%),
+    #FAF9F7;
+}
+html[data-theme='light'] .auth-backdrop .ab-rails rect:first-of-type,
+html[data-theme='light'] .ab-rails rect { fill: rgba(46, 42, 59, .1); }
+html[data-theme='light'] .ab-rails rect[width='1440'] { fill: rgba(46, 42, 59, .3); }
+html[data-theme='light'] .auth-card {
+  background: rgba(255, 255, 255, .72);
+  border-color: rgba(46, 42, 59, .12);
+  box-shadow: 0 30px 80px rgba(140, 120, 200, .18);
+}
+html[data-theme='light'] .auth-card input {
+  background: rgba(250, 249, 247, .9);
+  border-color: rgba(46, 42, 59, .14);
+  color: #2E2A3B;
+}
+html[data-theme='light'] .auth-card input::placeholder { color: #8B8795; }
+html[data-theme='light'] .auth-sub, html[data-theme='light'] .auth-logo, html[data-theme='light'] .auth-alt { color: #2E2A3B; }
+html[data-theme='light'] .auth-sub { color: #6B6780; }
+html[data-theme='light'] .auth-alt a { color: #2E9C7C; }
+html[data-theme='light'] .auth-back { color: #6B6780; }
+html[data-theme='light'] .auth-back:hover { color: #2E2A3B; }
 
 /* ---------- responsive / reduced motion ---------- */
 @media (max-width: 820px) {

@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import './styles.css'
 import './landing/landing.css'
 import App from './App.jsx'
+import { ThemeProvider } from './theme.jsx'
 
 // surface runtime errors visibly instead of a silent blank page + report to backend
 function reportError(kind, text, detail) {
@@ -28,8 +29,10 @@ window.addEventListener('unhandledrejection', (e) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </React.StrictMode>,
 )

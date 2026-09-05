@@ -6,22 +6,23 @@ import { C, usePoll, get, post, titleCase } from '../lib.js'
 import { RoverModel } from '../three.jsx'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import { useTheme } from '../theme.jsx'
 
-function MiniRover() {
+function MiniRover({ dark }) {
   return (
     <Canvas dpr={[1, 1.5]} camera={{ position: [2.6, 1.9, 3.2], fov: 42 }} style={{ height: 170 }}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[4, 6, 3]} intensity={1.1} color="#EDE8FF" />
+      <ambientLight intensity={dark ? 0.6 : 0.8} />
+      <directionalLight position={[4, 6, 3]} intensity={dark ? 1.1 : 1.2} color={dark ? '#EDE8FF' : '#FFF6E8'} />
       <group>
-        {/* ground + rails so the rover reads as riding a track (dark theme) */}
+        {/* ground + rails so the rover reads as riding a track (theme-aware) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.06, 0]}>
           <circleGeometry args={[6, 40]} />
-          <meshStandardMaterial color="#141217" roughness={1} />
+          <meshStandardMaterial color={dark ? '#141217' : '#EFE9E0'} roughness={1} />
         </mesh>
         {[-0.55, 0.55].map((x) => (
           <mesh key={x} position={[x, 0.03, 0]}>
             <cylinderGeometry args={[0.045, 0.045, 2.6, 10]} />
-            <meshStandardMaterial color="#4A4556" roughness={0.35} metalness={0.6} />
+            <meshStandardMaterial color={dark ? '#4A4556' : '#8B8795'} roughness={0.35} metalness={dark ? 0.6 : 0.5} />
           </mesh>
         ))}
         <RoverModel />
@@ -42,6 +43,7 @@ const STATUS_STYLE = {
 
 export default function Fleet() {
   const rovers = usePoll(() => get('/rovers'), 2500)
+  const { theme } = useTheme()
   const [busy, setBusy] = useState(null)
   const [confirmStop, setConfirmStop] = useState(false)
   const [flash, setFlash] = useState(null)
@@ -89,7 +91,7 @@ export default function Fleet() {
                 <span className={`badge ${live ? 'pulse' : ''}`} style={st}>{titleCase(r.status)}</span>
               </div>
 
-              {idx === 0 && <div style={{ margin: '14px -4px 4px' }}><MiniRover /></div>}
+              {idx === 0 && <div style={{ margin: '14px -4px 4px' }}><MiniRover dark={theme === 'dark'} /></div>}
 
               <div className="grid cols-2" style={{ gap: 10, marginTop: 14 }}>
                 {[[Battery, 'Battery', `${r.battery?.toFixed?.(0) ?? '—'}%`, r.battery < 30 ? C.rose : C.mint],

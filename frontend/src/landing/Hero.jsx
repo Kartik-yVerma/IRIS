@@ -10,7 +10,7 @@ const cycleSecs = () => {
   return Number.isFinite(v) && v > 0 ? v : 300
 }
 
-export default function Hero({ ready, scrollYProgress, stats }) {
+export default function Hero({ ready, scrollYProgress, stats, variant = 'dark' }) {
   const canvasOpacity = useTransform(scrollYProgress, [0.15, 0.85], [1, 0])
   const canvasScale = useTransform(scrollYProgress, [0.15, 0.85], [1, 0.96])
   const s = stats.summary
@@ -23,7 +23,7 @@ export default function Hero({ ready, scrollYProgress, stats }) {
   return (
     <section id="home" className="nex-hero">
       <motion.div className="nex-hero-canvas" style={{ opacity: canvasOpacity, scale: canvasScale }}>
-        <HeroScene variant="dark" scrollProgress={scrollYProgress} enableZoom={false} cycleSecs={cycleSecs()} />
+        <HeroScene variant={variant} scrollProgress={scrollYProgress} enableZoom={false} cycleSecs={cycleSecs()} />
       </motion.div>
       <div className="nex-hero-scrim" />
       <div className="nex-hero-type">

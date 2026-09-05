@@ -15,7 +15,7 @@ export default function AuthPage() {
   const [entering, setEntering] = useState(false)
 
   useEffect(() => {
-    document.body.classList.add('nex-body-dark')
+    if (document.documentElement.dataset.theme !== 'light') document.body.classList.add('nex-body-dark')
     return () => document.body.classList.remove('nex-body-dark')
   }, [])
 

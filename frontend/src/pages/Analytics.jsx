@@ -101,7 +101,7 @@ export default function Analytics() {
             <ResponsiveContainer width="58%" height={280}>
               <PieChart>
                 <Pie data={sevData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={92} paddingAngle={3} strokeWidth={2}>
-                  {sevData.map((d, i) => <Cell key={i} fill={d.color} stroke="#141217" />)}
+                  {sevData.map((d, i) => <Cell key={i} fill={d.color} stroke="var(--nx-bg)" />)}
                 </Pie>
                 <Tooltip content={<Tip />} />
               </PieChart>
