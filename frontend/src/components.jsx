@@ -339,9 +339,16 @@ function pinIcon(sev) {
 export function MiniMap({ points, rover, events = [], height = 300, flyTo, onEvent, zoom = 11, patrolStart, patrolEnd, dark = false }) {
   if (!points?.length) return <div className="skeleton" style={{ height }} />
   const center = rover ? [rover.lat, rover.lng] : points[Math.floor(points.length / 2)]
+  // keyless free tiles: OSM standard (light) and Esri Dark Gray Canvas (dark)
+  const tiles = dark
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  const attribution = dark
+    ? '&copy; <a href="https://www.esri.com/">Esri</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
   return (
     <MapContainer center={center} zoom={zoom} style={{ height, width: '100%' }} scrollWheelZoom={false} attributionControl={true}>
-      <TileLayer url={dark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
+      <TileLayer url={tiles} attribution={attribution} />
       <Polyline positions={points} pathOptions={{ color: C.lavender, weight: 4, opacity: .85 }} />
       {patrolStart != null && patrolEnd != null && (() => {
         const seg = points.filter((p, i) => i >= patrolStart && i <= patrolEnd)

@@ -119,7 +119,7 @@ export default function MapPage() {
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
       <MapContainer center={[18.755, 73.34]} zoom={11} style={{ height: '100%', width: '100%' }} attributionControl={true}>
-        <TileLayer url={theme === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' />
+        <TileLayer url={theme === 'dark' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'} attribution={theme === 'dark' ? '&copy; <a href="https://www.esri.com/">Esri</a>' : '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'} />
         {layers.zones && zonePts.map((z) => (
           <Polyline key={z.name} positions={z.pts} pathOptions={{ color: C.lavender, weight: 7, opacity: 0.16 }} />
         ))}
