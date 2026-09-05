@@ -42,10 +42,7 @@ export default function Hero({ ready, scrollYProgress, stats }) {
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.9, ease: EASE, delay: 0.25 }}
         >
-          <span className="nex-echo-wrap">
-            IRIS
-            <span className="nex-echo" aria-hidden="true">IRIS</span>
-          </span>
+          IRIS
         </motion.h1>
         <motion.p
           className="nex-tagline"
