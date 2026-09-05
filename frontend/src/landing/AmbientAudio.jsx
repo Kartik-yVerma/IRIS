@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Volume2 } from 'lucide-react'
 
-// calming generative BGM — a slow Am → F → G → C pad, synthesized live with
-// the Web Audio API: no assets, no downloads. Browsers gate autoplay behind
-// a user gesture, so it fades in on the first click/keypress of the visit
-// and can be toggled any time (preference remembered per browser).
+// Ambient BGM. Two sources:
+//   1. Your own loop — drop a file at frontend/public/audio/bgm.mp3 and it
+//      plays on loop (volume-faded in/out with the toggle).
+//   2. Fallback — a calming generative pad (slow Am → F → G → C), synthesized
+//      live with the Web Audio API when no file is present.
+// Browsers gate autoplay behind a user gesture, so it fades in on the first
+// click/keypress of the visit; the preference is remembered per browser.
+const TRACK_VOL = 0.5
 const CHORDS = [
   [110.0, 164.81, 220.0, 329.63],   // Am
   [87.31, 130.81, 174.61, 261.63],  // F
@@ -17,6 +21,9 @@ const VOL = 0.055   // quiet — background, not foreground
 
 export default function AmbientAudio() {
   const [playing, setPlaying] = useState(false)
+  const [hasTrack, setHasTrack] = useState(null)   // null = still checking
+  const audioRef = useRef(null)
+  const fadeRef = useRef(null)
   const ctxRef = useRef(null)
   const gainRef = useRef(null)
   const voicesRef = useRef([])
@@ -26,13 +33,54 @@ export default function AmbientAudio() {
   const playingRef = useRef(playing)
   playingRef.current = playing
 
-  const build = () => {
+  // ---------------- user-provided loop file ----------------
+  useEffect(() => {
+    const a = new Audio('/audio/bgm.mp3')
+    a.loop = true
+    a.preload = 'auto'
+    const ok = () => {
+      setHasTrack(true)
+      // file arrived while the synth was already playing → crossfade to it
+      if (startedRef.current && playingRef.current) {
+        fadeSynth(0)
+        startTrack()
+      }
+    }
+    const bad = () => { setHasTrack(false); a.src = '' }
+    a.addEventListener('canplaythrough', ok, { once: true })
+    a.addEventListener('error', bad, { once: true })
+    audioRef.current = a
+    return () => { a.pause(); a.src = '' }
+  }, [])
+
+  const fadeAudio = (target, ms, done) => {
+    const a = audioRef.current
+    if (!a) return
+    cancelAnimationFrame(fadeRef.current)
+    const t0 = performance.now()
+    const from = a.volume
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / ms)
+      a.volume = from + (target - from) * p
+      if (p < 1) fadeRef.current = requestAnimationFrame(step)
+      else if (target === 0) { a.pause(); done && done() }
+    }
+    fadeRef.current = requestAnimationFrame(step)
+  }
+
+  const startTrack = () => {
+    const a = audioRef.current
+    if (!a) return
+    a.volume = 0
+    a.play().then(() => fadeAudio(TRACK_VOL, 1200)).catch(() => startSynth())
+  }
+
+  // ---------------- generative synth fallback ----------------
+  const buildSynth = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const master = ctx.createGain()
     master.gain.value = 0
     master.connect(ctx.destination)
-
-    // slow "breathing" LFO on the master gain
     const lfo = ctx.createOscillator()
     lfo.frequency.value = 0.07
     const lfoGain = ctx.createGain()
@@ -40,14 +88,11 @@ export default function AmbientAudio() {
     lfo.connect(lfoGain)
     lfoGain.connect(master.gain)
     lfo.start()
-
-    // soft low-pass keeps the pad airy
     const filter = ctx.createBiquadFilter()
     filter.type = 'lowpass'
     filter.frequency.value = 950
     filter.Q.value = 0.6
     filter.connect(master)
-
     const voices = CHORDS[0].map((f) => {
       const osc = ctx.createOscillator()
       osc.type = 'sine'
@@ -65,34 +110,40 @@ export default function AmbientAudio() {
     return ctx
   }
 
-  const nextChord = () => {
-    const voices = voicesRef.current
-    if (!voices?.length) return
-    chordRef.current = (chordRef.current + 1) % CHORDS.length
-    const now = voices[0].osc.context.currentTime
-    // setTargetAtTime glides each voice to the next chord — seamless
-    CHORDS[chordRef.current].forEach((f, i) => {
-      voices[i].osc.frequency.setTargetAtTime(f, now, CROSSFADE / 3)
-    })
+  const fadeSynth = (target) => {
+    const ctx = ctxRef.current
+    if (ctx && gainRef.current) gainRef.current.gain.setTargetAtTime(target, ctx.currentTime, target === 0 ? 0.4 : 1.2)
   }
 
-  const start = () => {
-    if (!ctxRef.current) build()
-    const ctx = ctxRef.current
-    ctx.resume()
-    gainRef.current.gain.setTargetAtTime(VOL, ctx.currentTime, 1.2)
+  const startSynth = () => {
+    if (!ctxRef.current) buildSynth()
+    ctxRef.current.resume()
+    fadeSynth(VOL)
     if (!timerRef.current) timerRef.current = setTimeout(function tick() {
-      nextChord()
+      const voices = voicesRef.current
+      if (voices?.length) {
+        chordRef.current = (chordRef.current + 1) % CHORDS.length
+        const now = voices[0].osc.context.currentTime
+        CHORDS[chordRef.current].forEach((f, i) => {
+          voices[i].osc.frequency.setTargetAtTime(f, now, CROSSFADE / 3)
+        })
+      }
       timerRef.current = setTimeout(tick, CHORD_SECS * 1000)
     }, CHORD_SECS * 1000)
+  }
+
+  // ---------------- shared control ----------------
+  const start = () => {
     startedRef.current = true
     setPlaying(true)
     localStorage.setItem('iris.bgm', 'on')
+    if (hasTrack && audioRef.current) startTrack()
+    else startSynth()
   }
 
   const stop = () => {
-    const ctx = ctxRef.current
-    if (ctx && gainRef.current) gainRef.current.gain.setTargetAtTime(0, ctx.currentTime, 0.4)
+    if (hasTrack && audioRef.current) fadeAudio(0, 500)
+    fadeSynth(0)
     clearTimeout(timerRef.current)
     timerRef.current = null
     setPlaying(false)
@@ -112,6 +163,7 @@ export default function AmbientAudio() {
       window.removeEventListener('pointerdown', onFirst)
       window.removeEventListener('keydown', onFirst)
       clearTimeout(timerRef.current)
+      cancelAnimationFrame(fadeRef.current)
       voicesRef.current.forEach((v) => { try { v.osc.stop() } catch { /* noop */ } })
       ctxRef.current?.close?.()
     }
@@ -122,7 +174,8 @@ export default function AmbientAudio() {
       className={`bgm-toggle${playing ? ' on' : ''}`}
       onClick={() => (playing ? stop() : start())}
       data-hover
-      aria-label={playing ? 'Mute background music' : 'Play calming background music'}
+      data-src={hasTrack ? 'file' : 'synth'}
+      aria-label={playing ? 'Mute background music' : 'Play background music'}
       title={playing ? 'Mute ambient music' : 'Play calming ambient music'}
     >
       <Volume2 size={15} />
