@@ -302,8 +302,8 @@ function SweepLight({ t }) {
 }
 
 // ------------------------------------------------------------- moving track
-// The rover stays parked; the belt streams toward the viewer (wrapping
-// modulo the sleeper spacing) so the scene reads as constant forward travel.
+// The rover stays parked; the belt streams away from the viewer, into the
+// distance (wrapping modulo the sleeper spacing) — reversed direction.
 function MovingTrack({ t }) {
   const sleepers = useRef([])
   const glints = useRef([])
@@ -326,14 +326,14 @@ function MovingTrack({ t }) {
     conf.bases.forEach((b, i) => {
       const m = sleepers.current[i]
       if (!m) return
-      const u = (((b - off) % conf.length) + conf.length) % conf.length / conf.length
+      const u = ((b + off) % conf.length) / conf.length
       const p = TRACK_CURVE.getPointAt(u)
       m.position.set(p.x, -0.05, p.z)
     })
     conf.glints.forEach((g, i) => {
       const m = glints.current[i]
       if (!m) return
-      const u = (((g.arc - off) % conf.length) + conf.length) % conf.length / conf.length
+      const u = ((g.arc + off) % conf.length) / conf.length
       const p = TRACK_CURVE.getPointAt(u)
       m.position.set(p.x + g.rail * RAIL_GAUGE, RAIL_TOP + 0.007, p.z)
       m.scale.set(g.w, 1, 0.9 + (i % 2) * 0.12)
