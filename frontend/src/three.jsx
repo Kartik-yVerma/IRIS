@@ -372,7 +372,9 @@ function MovingTrack({ t }) {
 
 // ------------------------------------------------- houses & greenery
 // Pastel houses, low-poly trees and bushes scattered along both sides of the
-// line, denser near the camera and swallowed by the fog in the distance.
+// line. They stream away from the viewer at the same belt speed as the
+// track: the near wrap lands BEHIND the camera (z > 4.3) and the far wrap is
+// lost in the fog (z < −40), so the loop is invisible at any time of day.
 function House({ x, z, i, s, face, t }) {
   const wall = pick(t.walls, i + 200)
   const roof = pick(t.roofs, i + 300)
@@ -447,25 +449,48 @@ function Bush({ x, z, i, s, face, t }) {
   )
 }
 
+const SCENE_NEAR = 7        // scenery wrap point — behind the camera (z = 4.3)
+const SCENE_FAR = -40       // scenery wrap point — beyond the day fog (36)
+const SCENE_SPAN = SCENE_NEAR - SCENE_FAR
+
 function Scenery({ t }) {
+  const grps = useRef([])
+  const offset = useRef(0)
   const items = useMemo(() => {
     const out = []
-    for (let i = 0; i < 30; i++) {
+    const N = 48
+    for (let i = 0; i < N; i++) {
       const r = hash(i)
+      // uniform coverage along the span with a little jitter
+      const pos = (i * (SCENE_SPAN / N) + hash(i + 91) * 1.2) % SCENE_SPAN
       const x = (i % 2 ? 1 : -1) * (1.8 + hash(i + 80) * 5.2)
-      const z = -(2.3 + i * 0.75 + hash(i + 90) * 0.5)
       const s = 0.7 + hash(i + 50) * 0.7
       // every item turns to face the audience (diorama staging)
-      const face = Math.atan2(CAM.x - x, CAM.z - z)
-      out.push({ i, x, z, s, face, kind: r < 0.3 ? 'house' : r < 0.62 ? 'tree' : 'bush' })
+      const face = Math.atan2(CAM.x - x, CAM.z)
+      out.push({ i, x, pos, s, face, kind: r < 0.3 ? 'house' : r < 0.62 ? 'tree' : 'bush' })
     }
     return out
   }, [])
+
+  // stream the landscape away at the same speed as the track belt
+  useFrame((_, dt) => {
+    offset.current = (offset.current + BELT_SPEED * dt) % SCENE_SPAN
+    items.forEach((it, i) => {
+      const g = grps.current[i]
+      if (!g) return
+      g.position.z = SCENE_NEAR - ((it.pos + offset.current) % SCENE_SPAN)
+    })
+  })
+
   return (
     <group>
-      {items.map((it) =>
-        it.kind === 'house' ? <House key={it.i} {...it} t={t} /> : it.kind === 'tree' ? <Tree key={it.i} {...it} t={t} /> : <Bush key={it.i} {...it} t={t} />
-      )}
+      {items.map((it, idx) => (
+        <group key={it.i} ref={(el) => (grps.current[idx] = el)} position={[it.x, 0, SCENE_NEAR]}>
+          {it.kind === 'house' ? <House x={0} z={0} i={it.i} s={it.s} face={it.face} t={t} />
+            : it.kind === 'tree' ? <Tree x={0} z={0} i={it.i} s={it.s} face={it.face} t={t} />
+            : <Bush x={0} z={0} i={it.i} s={it.s} face={it.face} t={t} />}
+        </group>
+      ))}
     </group>
   )
 }
