@@ -4,8 +4,8 @@
 .nex {
   --nex-bg: #0E0D10;
   --nex-ink: #FFFFFF;
-  --nex-muted: #A6A2B2;
-  --nex-faint: #6E6A7A;
+  --nex-muted: #B4B0C0;
+  --nex-faint: #7E7A8C;
   --nex-line: rgba(255, 255, 255, .14);
   --nex-accent: #7FD8BE;
   background: var(--nex-bg);
@@ -34,6 +34,27 @@
   color: var(--nex-muted);
 }
 .nex .nex-hairline { border-color: var(--nex-line); }
+
+/* ---------- white hairline strokes — keeps small grey text crisp ---------- */
+.nex-header nav a,
+.nex-header .cta,
+.nex-header .nex-header-user,
+.nex .nex-mono,
+.nex .nex-tagline,
+.nex-scroll-cue span,
+.nex-chip .l,
+.nex-frame .one,
+.nex-frame .tags span,
+.nex-frame .chrome .url,
+.nex-frame .stat,
+.nex-pillar .text,
+.nex-about-copy,
+.nex-footer,
+.auth-sub,
+.auth-alt {
+  -webkit-text-stroke: .5px rgba(255, 255, 255, .3);
+}
+.auth-card input::placeholder { -webkit-text-stroke: .4px rgba(255, 255, 255, .22); }
 
 /* ---------- sections ---------- */
 .nex-section {
@@ -149,7 +170,7 @@
   outline: none;
   transition: border-color .25s, box-shadow .25s;
 }
-.auth-card input::placeholder { color: #6E6A7A; }
+.auth-card input::placeholder { color: #8B8795; }
 .auth-card input:focus { border-color: #7FD8BE; box-shadow: 0 0 0 3px rgba(127, 216, 190, .14); }
 .auth-error { margin-top: 14px; font-size: 12.5px; color: #F4A6C0; background: rgba(224, 96, 140, .12); border: 1px solid rgba(224, 96, 140, .3); border-radius: 12px; padding: 10px 14px; }
 .auth-submit {
@@ -276,7 +297,7 @@
 .nex-header .wordmark { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: .04em; }
 .nex-header .wordmark em { color: var(--nex-accent); font-style: normal; }
 .nex-header nav { display: flex; align-items: center; gap: 34px; }
-.nex-header nav a { font-size: 13px; color: var(--nex-muted); letter-spacing: .08em; text-transform: uppercase; position: relative; transition: color .25s; }
+.nex-header nav a { font-size: 13px; color: #D6D2E0; letter-spacing: .08em; text-transform: uppercase; position: relative; transition: color .25s; }
 .nex-header nav a:hover { color: var(--nex-ink); }
 .nex-header nav a::after {
   content: ''; position: absolute; left: 0; bottom: -5px; width: 0; height: 1px;
