@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { motion, useInView, useTransform } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 
 const EASE = [0.2, 0.8, 0.25, 1]
 
@@ -37,17 +37,6 @@ export function WordReveal({ text, className, delay = 0, amount = 0.6 }) {
         </span>
       ))}
     </span>
-  )
-}
-
-// solid text with an outlined echo that drifts on scroll
-export function EchoText({ text, progress = 0, className = '' }) {
-  const x = useTransform(progress, [0, 1], ['0%', '-5%'])
-  return (
-    <div className={`nex-echo-wrap ${className}`}>
-      <div>{text}</div>
-      <motion.div className="nex-echo" style={{ x }} aria-hidden="true">{text}</motion.div>
-    </div>
   )
 }
 

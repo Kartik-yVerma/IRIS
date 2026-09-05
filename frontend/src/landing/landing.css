@@ -53,18 +53,6 @@
 .nex-section-head .num { color: var(--nex-accent); font-family: ui-monospace, Menlo, monospace; font-size: 13px; letter-spacing: .18em; }
 .nex-section-head .rule { flex: 1; height: 1px; background: var(--nex-line); }
 
-/* ---------- echoed / outlined text ---------- */
-.nex-echo-wrap { position: relative; display: inline-block; }
-.nex-echo {
-  position: absolute;
-  inset: 0;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, .55);
-  text-shadow: none;   /* never inherit the display shadow — ghost blob */
-  user-select: none;
-  pointer-events: none;
-}
-
 /* ---------- hero ---------- */
 .nex .nex-tagline {
   margin-top: 3vh;
