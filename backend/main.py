@@ -11,6 +11,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -171,6 +172,12 @@ class LoginBody(BaseModel):
     password: str
 
 
+class ProfileBody(BaseModel):
+    name: Optional[str] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
+
+
 @app.post("/api/auth/signup")
 async def auth_signup(body: SignupBody):
     email = body.email.strip().lower()
@@ -206,6 +213,30 @@ async def auth_login(body: LoginBody):
 @app.get("/api/auth/me")
 async def auth_me(authorization: str = Header(None)):
     return {"user": _session_user(authorization)}
+
+
+@app.patch("/api/auth/profile")
+async def auth_profile(body: ProfileBody, authorization: str = Header(None)):
+    user = _session_user(authorization)
+    row = _db.execute("SELECT * FROM users WHERE email = ?", (user["email"],)).fetchone()
+    name = (body.name or "").strip() or row["name"]
+    if len(name) > 60:
+        raise HTTPException(400, "Name is too long")
+    updates, params = ["name = ?"], [name]
+    if body.new_password:
+        if len(body.new_password) < 6:
+            raise HTTPException(400, "Password needs at least 6 characters")
+        if not body.current_password:
+            raise HTTPException(400, "Current password is required to change it")
+        h, _ = _hash_password(body.current_password, row["salt"])
+        if not secrets.compare_digest(h, row["password_hash"]):
+            raise HTTPException(400, "Current password is incorrect")
+        nh, nsalt = _hash_password(body.new_password)
+        updates += ["password_hash = ?", "salt = ?"]
+        params += [nh, nsalt]
+    _db.execute(f"UPDATE users SET {', '.join(updates)} WHERE email = ?", params + [user["email"]])
+    _db.commit()
+    return {"user": {"name": name, "email": user["email"]}}
 
 
 @app.post("/api/auth/logout")
