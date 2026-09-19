@@ -29,6 +29,7 @@ from track import TRACK, patrol_frame_count
 
 BASE = Path(__file__).resolve().parent
 DATA_DIR = BASE / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)  # fresh clones lack the gitignored dir
 DB_PATH = DATA_DIR / "iris.db"
 FRAMES_DIR = BASE / "frames"
 FRONTEND_DIST = BASE.parent / "frontend" / "dist"

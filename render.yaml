@@ -1,0 +1,15 @@
+# IRIS — Render Blueprint. One web service runs the whole site:
+# FastAPI backend + built React SPA (backend serves frontend/dist at /).
+services:
+  - type: web
+    name: iris
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r backend/requirements.txt
+      cd frontend && npm install --no-audit --no-fund && npm run build
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.10
